@@ -19,39 +19,17 @@ Login
 View patients
 Start video call
 🧱 TECH STACK (Simple Version)
-Frontend
-
-React
-
-Backend
-
-Node.js + Express
-
-Database
-
-MongoDB Atlas
-
-Payments
-
-Razorpay
-
-Video Call
-
-Agora
+Frontend : React
+Backend : Node.js + Express
+Database : MongoDB Atlas
+Payments: Razorpay
+Video Call: Agora
 
 🧭 DEVELOPMENT PLAN
-PHASE 1
-
-Setup project
-
-PHASE 2
-Build booking form
-PHASE 3
-Save appointments
-PHASE 4
-UPI payment
-PHASE 5
-Doctor dashboard
-PHASE 6
-Video call
+PHASE 1: Setup project
+PHASE 2 : Build booking form
+PHASE 3 : Save appointments
+PHASE 4 : UPI payment
+PHASE 5 : Doctor dashboard
+PHASE 6 : Video call
 
