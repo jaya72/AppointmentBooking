@@ -1,80 +1,47 @@
-import { useState } from "react";
-import axios from "axios";
-import "./App.css";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Link,
+} from "react-router-dom";
+
+import PatientPage from "./pages/PatientPage";
+import DoctorDashboard from "./pages/DoctorDashboard";
 
 function App() {
-  const [formData, setFormData] = useState({
-    name: "",
-    age: "",
-    address: "",
-    date: "",
-    time: "",
-  });
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleSubmit = async () => {
-    try {
-      const response = await axios.post(
-        "http://localhost:5000/book",
-        formData
-      );
-
-      alert(response.data.message);
-
-      console.log(response.data);
-    } catch (error) {
-      console.log(error);
-      alert("Error booking appointment");
-    }
-  };
-
   return (
-    <div className="container">
-      <h2>Doctor Appointment Booking</h2>
+    <BrowserRouter>
+      <div className="container">
 
-      <input
-        type="text"
-        name="name"
-        placeholder="Patient Name"
-        onChange={handleChange}
-      />
+        <h2>Doctor Appointment App</h2>
 
-      <input
-        type="number"
-        name="age"
-        placeholder="Age"
-        onChange={handleChange}
-      />
+        <div style={{ marginBottom: "20px" }}>
+          <Link to="/">
+            <button>
+              Patient Page
+            </button>
+          </Link>
 
-      <textarea
-        name="address"
-        placeholder="Address"
-        onChange={handleChange}
-      ></textarea>
+          <Link to="/doctor">
+            <button style={{ marginLeft: "10px" }}>
+              Doctor Dashboard
+            </button>
+          </Link>
+        </div>
 
-      <input
-        type="date"
-        name="date"
-        onChange={handleChange}
-      />
+        <Routes>
+          <Route
+            path="/"
+            element={<PatientPage />}
+          />
 
-      <select name="time" onChange={handleChange}>
-        <option value="">Select Time</option>
-        <option value="10:00 AM">10:00 AM</option>
-        <option value="12:00 PM">12:00 PM</option>
-        <option value="3:00 PM">3:00 PM</option>
-      </select>
-
-      <button onClick={handleSubmit}>
-        Pay via UPI
-      </button>
-    </div>
+          <Route
+            path="/doctor"
+            element={<DoctorDashboard />}
+          />
+        </Routes>
+      </div>
+    </BrowserRouter>
   );
 }
 
