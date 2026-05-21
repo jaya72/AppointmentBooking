@@ -79,21 +79,21 @@ export default function SignupPage() {
           <span className="text-xl font-semibold text-foreground tracking-tight">MediBook</span>
         </div>
 
-        <div className="bg-card rounded-2xl border border-border shadow-sm p-8">
+        <div className="clay-card p-8">
           <h1 className="text-2xl font-semibold text-foreground mb-1 text-balance">Create your account</h1>
           <p className="text-sm text-muted-foreground mb-6">Join MediBook to manage your health appointments.</p>
 
-          {/* Role selector */}
-          <div className="flex gap-2 mb-6">
+          {/* Role selector tab container (Tactile clay track) */}
+          <div className="clay-tabs-container flex mb-6">
             {(['patient', 'doctor'] as Role[]).map(r => (
               <button
                 key={r}
                 type="button"
                 onClick={() => setRole(r)}
-                className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all border ${
+                className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all ${
                   role === r
-                    ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                    : 'bg-secondary text-secondary-foreground border-transparent hover:border-border'
+                    ? 'clay-tab-item-active shadow-sm text-foreground'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 {r === 'patient' ? 'Patient' : 'Doctor'}
@@ -104,7 +104,7 @@ export default function SignupPage() {
           <form onSubmit={handleSubmit} noValidate className="space-y-4">
             {/* Name */}
             <div className="space-y-1.5">
-              <Label htmlFor="name">Full Name</Label>
+              <Label htmlFor="name" className="font-medium text-foreground ml-1">Full Name</Label>
               <div className="relative flex items-center">
                 <Input
                   id="name"
@@ -114,16 +114,16 @@ export default function SignupPage() {
                   value={name.value}
                   onChange={e => name.set(e.target.value)}
                   onBlur={name.touch}
-                  className={`pr-9 ${name.touched && !nameOk ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+                  className={`pr-9 clay-input ${name.touched && !nameOk ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                 />
                 <span className="absolute right-3"><ValidationIcon ok={nameOk} touched={name.touched} /></span>
               </div>
-              {name.touched && !nameOk && <p className="text-xs text-destructive">Name must be at least 2 characters.</p>}
+              {name.touched && !nameOk && <p className="text-xs text-destructive ml-1">Name must be at least 2 characters.</p>}
             </div>
 
             {/* Email */}
             <div className="space-y-1.5">
-              <Label htmlFor="email">Email Address</Label>
+              <Label htmlFor="email" className="font-medium text-foreground ml-1">Email Address</Label>
               <div className="relative flex items-center">
                 <Input
                   id="email"
@@ -133,16 +133,16 @@ export default function SignupPage() {
                   value={email.value}
                   onChange={e => email.set(e.target.value)}
                   onBlur={email.touch}
-                  className={`pr-9 ${email.touched && !emailOk ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+                  className={`pr-9 clay-input ${email.touched && !emailOk ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                 />
                 <span className="absolute right-3"><ValidationIcon ok={emailOk} touched={email.touched} /></span>
               </div>
-              {email.touched && !emailOk && <p className="text-xs text-destructive">Please enter a valid email.</p>}
+              {email.touched && !emailOk && <p className="text-xs text-destructive ml-1">Please enter a valid email.</p>}
             </div>
 
             {/* Password */}
             <div className="space-y-1.5">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="font-medium text-foreground ml-1">Password</Label>
               <div className="relative flex items-center">
                 <Input
                   id="password"
@@ -152,23 +152,23 @@ export default function SignupPage() {
                   value={password.value}
                   onChange={e => password.set(e.target.value)}
                   onBlur={password.touch}
-                  className={`pr-16 ${password.touched && !pwOk ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+                  className={`pr-16 clay-input ${password.touched && !pwOk ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                 />
                 <span className="absolute right-8"><ValidationIcon ok={pwOk} touched={password.touched} /></span>
                 <button type="button" className="absolute right-3 text-muted-foreground hover:text-foreground" onClick={() => setShowPw(v => !v)} aria-label={showPw ? 'Hide password' : 'Show password'}>
                   {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-              {password.touched && !pwOk && <p className="text-xs text-destructive">Password must be at least 6 characters.</p>}
+              {password.touched && !pwOk && <p className="text-xs text-destructive ml-1">Password must be at least 6 characters.</p>}
             </div>
 
             {serverError && (
-              <div className="bg-destructive/10 border border-destructive/30 text-destructive text-sm rounded-xl px-4 py-3">
+              <div className="clay-alert-error text-sm px-4 py-3">
                 {serverError}
               </div>
             )}
 
-            <Button type="submit" className="w-full rounded-xl" disabled={!canSubmit}>
+            <Button type="submit" className="w-full clay-btn mt-2" disabled={!canSubmit}>
               {loading ? 'Creating account...' : 'Create Account'}
             </Button>
           </form>

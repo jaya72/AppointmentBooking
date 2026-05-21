@@ -42,29 +42,26 @@ export function SessionBanner() {
   if (!show || dismissed) return null
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 bg-amber-50 border-b border-amber-200">
-      <div className="max-w-3xl mx-auto px-4 py-2.5 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-amber-700 text-sm">
-          <AlertCircle className="w-4 h-4 shrink-0" />
-          <span>Your session is expiring soon.</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            className="rounded-lg h-7 text-xs border-amber-300 text-amber-700 hover:bg-amber-100"
-            onClick={() => { logout(); window.location.href = '/login' }}
-          >
-            Sign in again
-          </Button>
-          <button
-            onClick={() => setDismissed(true)}
-            className="text-amber-500 hover:text-amber-700"
-            aria-label="Dismiss"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
+    <div className="fixed top-4 left-4 right-4 z-50 max-w-2xl mx-auto clay-alert-warning p-4.5 shadow-lg flex items-center justify-between gap-4">
+      <div className="flex items-center gap-2.5 text-xs font-bold">
+        <AlertCircle className="w-4.5 h-4.5 shrink-0 text-[#92400e] animate-pulse" />
+        <span>Your session is expiring soon.</span>
+      </div>
+      <div className="flex items-center gap-3 shrink-0">
+        <Button
+          size="sm"
+          className="clay-btn-secondary px-3.5 py-2 text-xxs font-bold"
+          onClick={() => { logout(); window.location.href = '/login' }}
+        >
+          Sign in again
+        </Button>
+        <button
+          onClick={() => setDismissed(true)}
+          className="text-[#92400e]/70 hover:text-[#92400e] transition-colors p-1"
+          aria-label="Dismiss"
+        >
+          <X className="w-4 h-4 shrink-0" />
+        </button>
       </div>
     </div>
   )

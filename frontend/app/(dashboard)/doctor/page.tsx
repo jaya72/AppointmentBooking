@@ -41,19 +41,19 @@ export default function DoctorPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-card border-b border-border sticky top-0 z-30">
-        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center">
+      <header className="bg-card/85 backdrop-blur-md sticky top-0 z-30 border-b border-white/60 shadow-[0_8px_32px_rgba(163,177,198,0.15),inset_0_1px_2px_rgba(255,255,255,0.8)]">
+        <div className="max-w-3xl mx-auto px-4 py-3.5 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shadow-[inset_1.5px_1.5px_3px_rgba(255,255,255,0.5),2px_2px_5px_rgba(163,177,198,0.3)]">
               <Stethoscope className="w-4 h-4 text-primary-foreground" />
             </div>
-            <span className="font-semibold text-foreground">MediBook</span>
+            <span className="font-bold text-foreground tracking-tight">MediBook</span>
             <DoctorBadge />
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-sm text-muted-foreground hidden sm:block">{user?.name || 'Doctor'}</span>
-            <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" onClick={handleLogout}>
-              <LogOut className="w-4 h-4" />
+            <span className="text-sm font-semibold text-muted-foreground hidden sm:block">{user?.name || 'Doctor'}</span>
+            <Button size="sm" className="gap-1.5 clay-btn-secondary px-3 py-1.5 text-xs" onClick={handleLogout}>
+              <LogOut className="w-3.5 h-3.5" />
               <span className="hidden sm:block">Sign out</span>
             </Button>
           </div>
@@ -62,21 +62,20 @@ export default function DoctorPage() {
 
       <main className="max-w-3xl mx-auto px-4 py-6 space-y-6">
         {/* Greeting */}
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-foreground text-balance">
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground text-balance">
               Good to see you, {user?.name ? user.name.split(' ')[0] : 'Doctor'}
             </h1>
-            <p className="text-muted-foreground text-sm mt-0.5">Here is your schedule overview.</p>
+            <p className="text-muted-foreground text-sm">Here is your schedule overview.</p>
           </div>
           <Button
-            variant="outline"
             size="sm"
-            className="gap-1.5 rounded-xl shrink-0"
+            className="gap-1.5 clay-btn-secondary px-3 py-2 text-xs shrink-0"
             onClick={refresh}
             aria-label="Sync schedule"
           >
-            <RefreshCw className="w-3.5 h-3.5" />
+            <RefreshCw className="w-3.5 h-3.5 animate-spin-slow" />
             <span className="hidden sm:inline">Sync Schedule</span>
           </Button>
         </div>

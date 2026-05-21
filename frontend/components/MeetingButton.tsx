@@ -65,8 +65,8 @@ export function MeetingButton({ date, time, meetingLink }: MeetingButtonProps) {
       ? `Opens in ${hours}h ${mins}m`
       : `Opens in ${mins}m`
     return (
-      <Button size="sm" variant="secondary" className="rounded-xl gap-1.5 cursor-not-allowed opacity-70" disabled>
-        <Clock className="w-4 h-4" />
+      <Button size="sm" className="w-full clay-btn-secondary py-5.5 text-xs gap-1.5 cursor-not-allowed opacity-70" disabled>
+        <Clock className="w-3.5 h-3.5 shrink-0" />
         {label}
       </Button>
     )
@@ -74,10 +74,10 @@ export function MeetingButton({ date, time, meetingLink }: MeetingButtonProps) {
 
   if (isLive || isSoon) {
     return (
-      <a href={meetingLink} target="_blank" rel="noopener noreferrer">
-        <Button size="sm" className="rounded-xl gap-2 bg-emerald-500 hover:bg-emerald-600 text-white">
-          <span className="w-2 h-2 rounded-full bg-white blink" />
-          <Video className="w-4 h-4" />
+      <a href={meetingLink} target="_blank" rel="noopener noreferrer" className="w-full block">
+        <Button className="w-full clay-btn py-5.5 text-xs flex items-center justify-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-[#064e3b] blink shrink-0" />
+          <Video className="w-4 h-4 text-[#064e3b] shrink-0" />
           Join Meeting
         </Button>
       </a>
@@ -86,8 +86,8 @@ export function MeetingButton({ date, time, meetingLink }: MeetingButtonProps) {
 
   // Past
   return (
-    <Button size="sm" variant="secondary" className="rounded-xl gap-1.5 opacity-60" disabled>
-      <Video className="w-4 h-4" />
+    <Button size="sm" className="w-full clay-btn-secondary py-5.5 text-xs gap-1.5 opacity-60" disabled>
+      <Video className="w-3.5 h-3.5 shrink-0" />
       {format(apptTime, 'MMM d, h:mm a')}
     </Button>
   )

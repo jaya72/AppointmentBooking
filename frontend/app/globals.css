@@ -4,54 +4,54 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Medical color palette */
-  --background: oklch(0.98 0.004 220);
+  /* Soft claymorphic canvas color palette */
+  --background: oklch(0.96 0.008 220); /* HSL(220, 10%, 96%) light warm grey canvas */
   --foreground: oklch(0.13 0.02 240);
-  --card: oklch(1 0 0);
+  --card: oklch(0.98 0.004 220); /* Extruded card background */
   --card-foreground: oklch(0.13 0.02 240);
-  --popover: oklch(1 0 0);
+  --popover: oklch(0.99 0.002 220);
   --popover-foreground: oklch(0.13 0.02 240);
 
-  /* Teal primary */
-  --primary: oklch(0.6 0.17 210);
-  --primary-foreground: oklch(1 0 0);
+  /* Primary Mint Green color token (from styleguide image) */
+  --primary: oklch(0.85 0.12 150); /* #A3E3C3 mint green */
+  --primary-foreground: oklch(0.2 0.08 150); /* Dark forest green for high contrast text */
 
-  --secondary: oklch(0.96 0.01 220);
+  --secondary: oklch(0.93 0.008 220);
   --secondary-foreground: oklch(0.13 0.02 240);
-  --muted: oklch(0.96 0.006 220);
+  --muted: oklch(0.94 0.006 220);
   --muted-foreground: oklch(0.5 0.015 240);
-  --accent: oklch(0.96 0.01 210);
+  --accent: oklch(0.94 0.01 220);
   --accent-foreground: oklch(0.13 0.02 240);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.91 0.008 220);
-  --input: oklch(0.91 0.008 220);
-  --ring: oklch(0.6 0.17 210);
+  --border: oklch(0.9 0.01 220);
+  --input: oklch(0.9 0.01 220);
+  --ring: oklch(0.8 0.14 150); /* Mint focus ring #00CFCC glow */
 
-  /* Status colors */
-  --paid-bg: oklch(0.95 0.07 145);
+  /* Status colors matching the styleguide image alerts */
+  --paid-bg: oklch(0.95 0.07 145); /* Soft mint Success */
   --paid-text: oklch(0.38 0.1 145);
-  --pending-bg: oklch(0.97 0.07 85);
+  --pending-bg: oklch(0.97 0.07 85); /* Soft yellow Warning */
   --pending-text: oklch(0.45 0.12 75);
   --doctor-badge-bg: oklch(0.93 0.06 260);
   --doctor-badge-text: oklch(0.4 0.12 260);
 
-  --radius: 0.75rem;
+  --radius: 1.25rem; /* Pill/Soft rounded corners matching styleguide */
 
-  --chart-1: oklch(0.6 0.17 210);
+  --chart-1: oklch(0.85 0.12 150);
   --chart-2: oklch(0.55 0.15 180);
   --chart-3: oklch(0.65 0.12 230);
   --chart-4: oklch(0.7 0.1 200);
   --chart-5: oklch(0.5 0.18 215);
 
-  --sidebar: oklch(1 0 0);
+  --sidebar: oklch(0.98 0.004 220);
   --sidebar-foreground: oklch(0.13 0.02 240);
-  --sidebar-primary: oklch(0.6 0.17 210);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.96 0.01 210);
+  --sidebar-primary: oklch(0.85 0.12 150);
+  --sidebar-primary-foreground: oklch(0.2 0.08 150);
+  --sidebar-accent: oklch(0.94 0.01 220);
   --sidebar-accent-foreground: oklch(0.13 0.02 240);
-  --sidebar-border: oklch(0.91 0.008 220);
-  --sidebar-ring: oklch(0.6 0.17 210);
+  --sidebar-border: oklch(0.9 0.01 220);
+  --sidebar-ring: oklch(0.8 0.14 150);
 }
 
 @theme inline {
@@ -81,10 +81,10 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 8px);
+  --radius-md: calc(var(--radius) - 4px);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-xl: calc(var(--radius) + 8px);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -100,7 +100,7 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
   }
 }
 
@@ -122,4 +122,199 @@
 }
 .blink {
   animation: blink 1.2s ease-in-out infinite;
+}
+
+/* --- PREMIUM TACTILE NEUMORPHIC & CLAYMORPHIC UTILITIES --- */
+
+/* Outward Extruded Tactile Cards (Claymorphism) */
+.clay-card {
+  background-color: oklch(0.98 0.004 220) !important;
+  border-radius: 1.5rem !important;
+  border: 1px solid rgba(255, 255, 255, 0.9) !important;
+  box-shadow: 
+    8px 8px 16px rgba(163, 177, 198, 0.35), 
+    -8px -8px 16px rgba(255, 255, 255, 1),
+    inset 1px 1px 3px rgba(255, 255, 255, 0.8) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hover claymorphic animation */
+.clay-card-interactive:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 
+    14px 14px 28px rgba(163, 177, 198, 0.45), 
+    -14px -14px 28px rgba(255, 255, 255, 1),
+    inset 1.5px 1.5px 4px rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Sunken Inset Areas */
+.clay-inset {
+  background-color: oklch(0.95 0.006 220) !important;
+  border: 1px solid rgba(229, 231, 235, 0.6) !important;
+  box-shadow: 
+    inset 4px 4px 8px rgba(163, 177, 198, 0.4), 
+    inset -4px -4px 8px rgba(255, 255, 255, 1) !important;
+}
+
+/* Claymorphic Buttons (Success/Primary Green) */
+.clay-btn {
+  background: linear-gradient(135deg, #a7f3d0 0%, #34d399 100%) !important;
+  color: #064e3b !important;
+  font-weight: 600 !important;
+  border-radius: 9999px !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 
+    4px 4px 8px rgba(163, 177, 198, 0.4), 
+    -4px -4px 8px rgba(255, 255, 255, 1),
+    inset 2px 2px 4px rgba(255, 255, 255, 0.5) !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.clay-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 10px 20px rgba(52, 211, 153, 0.45), /* Glow effect */
+    4px 4px 12px rgba(163, 177, 198, 0.5), 
+    -4px -4px 12px rgba(255, 255, 255, 1),
+    inset 2px 2px 4px rgba(255, 255, 255, 0.8) !important;
+  filter: brightness(1.03);
+}
+
+.clay-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 
+    inset 3px 3px 6px rgba(5, 150, 105, 0.4),
+    inset -3px -3px 6px rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Secondary tactile gray button */
+.clay-btn-secondary {
+  background: linear-gradient(135deg, #ffffff 0%, #f3f4f6 100%) !important;
+  color: #374151 !important;
+  font-weight: 600 !important;
+  border-radius: 9999px !important;
+  border: 1px solid rgba(255, 255, 255, 0.8) !important;
+  box-shadow: 
+    4px 4px 8px rgba(163, 177, 198, 0.3), 
+    -4px -4px 8px rgba(255, 255, 255, 1),
+    inset 1px 1px 2px rgba(255, 255, 255, 0.9) !important;
+  transition: all 0.2s ease;
+}
+
+.clay-btn-secondary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 
+    6px 6px 12px rgba(163, 177, 198, 0.35), 
+    -6px -6px 12px rgba(255, 255, 255, 1),
+    inset 1px 1px 2px rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Inset Neumorphic Input Fields */
+.clay-input {
+  background-color: oklch(0.98 0.004 220) !important;
+  border-radius: 9999px !important;
+  border: 2px solid #e5e7eb !important;
+  padding: 0.75rem 1.25rem;
+  box-shadow: 
+    inset 2px 2px 5px rgba(163, 177, 198, 0.25),
+    inset -2px -2px 5px rgba(255, 255, 255, 0.7),
+    0 1px 2px rgba(0, 0, 0, 0.02) !important;
+  transition: all 0.2s ease;
+}
+
+.clay-input:focus {
+  outline: none !important;
+  border-color: #34d399 !important;
+  box-shadow: 
+    0 0 0 4px rgba(52, 211, 153, 0.2), /* Neon mint focus ring */
+    inset 2px 2px 5px rgba(163, 177, 198, 0.25) !important;
+}
+
+/* Tactile Tab Selector (from styleguide image) */
+.clay-tabs-container {
+  background-color: oklch(0.93 0.008 220) !important;
+  padding: 0.375rem !important;
+  border-radius: 9999px !important;
+  box-shadow: 
+    inset 3px 3px 6px rgba(163, 177, 198, 0.4),
+    inset -3px -3px 6px rgba(255, 255, 255, 0.9) !important;
+}
+
+.clay-tab-item-active {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+  font-weight: 600 !important;
+  border-radius: 9999px !important;
+  box-shadow: 
+    3px 3px 6px rgba(163, 177, 198, 0.25),
+    -3px -3px 6px rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Tactile 3D Status Alerts (Success, Warning, Error) */
+.clay-alert-success {
+  background-color: #ecfdf5 !important;
+  border: 2px solid #a7f3d0 !important;
+  color: #065f46 !important;
+  border-radius: 1.25rem !important;
+  box-shadow: 
+    4px 4px 8px rgba(163, 177, 198, 0.2),
+    inset 2px 2px 4px rgba(255, 255, 255, 0.9) !important;
+}
+
+.clay-alert-warning {
+  background-color: #fffbeb !important;
+  border: 2px solid #fde68a !important;
+  color: #92400e !important;
+  border-radius: 1.25rem !important;
+  box-shadow: 
+    4px 4px 8px rgba(163, 177, 198, 0.2),
+    inset 2px 2px 4px rgba(255, 255, 255, 0.9) !important;
+}
+
+.clay-alert-error {
+  background-color: #fef2f2 !important;
+  border: 2px solid #fecaca !important;
+  color: #991b1b !important;
+  border-radius: 1.25rem !important;
+  box-shadow: 
+    4px 4px 8px rgba(163, 177, 198, 0.2),
+    inset 2px 2px 4px rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Tactile Claymorphic Chips */
+.clay-chip {
+  background: oklch(0.98 0.004 220);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 
+    2px 2px 4px rgba(163, 177, 198, 0.2),
+    -2px -2px 4px rgba(255, 255, 255, 0.9),
+    inset 1px 1px 2px rgba(255, 255, 255, 0.5);
+  border-radius: 9999px;
+  transition: all 0.2s ease;
+}
+
+.clay-chip-selected {
+  background: #a7f3d0 !important;
+  color: #064e3b !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 
+    inset 2px 2px 4px rgba(163, 177, 198, 0.3),
+    inset -2px -2px 4px rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Elevation level shadows (from styleguide stack) */
+.clay-elevation-1 {
+  box-shadow: 4px 4px 8px rgba(163, 177, 198, 0.25), -4px -4px 8px rgba(255, 255, 255, 1);
+}
+.clay-elevation-2 {
+  box-shadow: 8px 8px 16px rgba(163, 177, 198, 0.3), -8px -8px 16px rgba(255, 255, 255, 1);
+}
+.clay-elevation-3 {
+  box-shadow: 12px 12px 24px rgba(163, 177, 198, 0.35), -12px -12px 24px rgba(255, 255, 255, 1);
+}
+.clay-elevation-4 {
+  box-shadow: 16px 16px 32px rgba(163, 177, 198, 0.4), -16px -16px 32px rgba(255, 255, 255, 1);
+}
+.clay-elevation-5 {
+  box-shadow: 24px 24px 48px rgba(163, 177, 198, 0.45), -24px -24px 48px rgba(255, 255, 255, 1);
 }

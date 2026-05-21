@@ -64,30 +64,30 @@ export default function PatientAppointments({ refreshKey }: Props) {
       </div>
 
       {appointments.map(appt => (
-        <div key={appt._id} className="bg-card rounded-2xl border border-border p-5 shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-start justify-between gap-3 mb-3">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
-                <User className="w-4 h-4 text-primary" />
+        <div key={appt._id} className="clay-card clay-card-interactive p-5">
+          <div className="flex items-start justify-between gap-3 mb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="clay-inset w-8.5 h-8.5 rounded-xl flex items-center justify-center shrink-0">
+                <User className="w-4 h-4 text-emerald-600 animate-pulse" />
               </div>
               <div>
-                <p className="font-semibold text-foreground text-sm">{appt.name}</p>
-                <p className="text-xs text-muted-foreground">Age {appt.age}</p>
+                <p className="font-bold text-foreground text-sm tracking-tight">{appt.name}</p>
+                <p className="text-xs font-semibold text-muted-foreground">Age {appt.age}</p>
               </div>
             </div>
             <StatusBadge status={appt.paymentStatus} />
           </div>
 
-          <div className="space-y-1.5 mb-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <CalendarDays className="w-3.5 h-3.5 shrink-0" />
-              <span>
+          <div className="space-y-2 mb-4 bg-muted/30 p-3.5 rounded-xl border border-white/40 shadow-[inset_1px_1px_2px_rgba(163,177,198,0.1)]">
+            <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+              <CalendarDays className="w-3.5 h-3.5 shrink-0 text-emerald-600" />
+              <span className="text-foreground">
                 {format(parseISO(appt.date), 'EEE, MMM d, yyyy')} &mdash; {appt.time}
               </span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <MapPin className="w-3.5 h-3.5 shrink-0" />
-              <span className="truncate">{appt.address}</span>
+            <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+              <MapPin className="w-3.5 h-3.5 shrink-0 text-emerald-600" />
+              <span className="truncate text-foreground">{appt.address}</span>
             </div>
           </div>
 

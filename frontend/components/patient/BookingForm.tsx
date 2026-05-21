@@ -159,24 +159,24 @@ export default function BookingForm({ onBooked }: Props) {
   const stepLabels = ['Date & Time', 'Your Details', 'Confirmed']
 
   return (
-    <div className="bg-card rounded-2xl border border-border shadow-sm p-6 md:p-8">
+    <div className="clay-card p-6 md:p-8">
       {/* Step indicator */}
-      <div className="flex items-center gap-2 mb-6">
+      <div className="flex items-center gap-2 mb-8">
         {stepLabels.map((label, i) => {
           const n = i + 1
           const active = step === n
           const done = step > n
           return (
             <div key={n} className="flex items-center gap-2">
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                done ? 'bg-primary text-primary-foreground' :
-                active ? 'bg-primary text-primary-foreground ring-4 ring-primary/20' :
-                'bg-muted text-muted-foreground'
+              <div className={`w-7.5 h-7.5 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                done ? 'bg-primary text-primary-foreground shadow-[inset_1px_1px_2px_rgba(255,255,255,0.4),2px_2px_5px_rgba(163,177,198,0.25)]' :
+                active ? 'bg-primary text-primary-foreground ring-4 ring-primary/20 shadow-[inset_1px_1px_2px_rgba(255,255,255,0.4),2px_2px_5px_rgba(163,177,198,0.25)]' :
+                'bg-muted text-muted-foreground border border-white/60 shadow-[inset_1px_1px_2px_rgba(255,255,255,0.8),1px_1px_3px_rgba(163,177,198,0.15)]'
               }`}>
                 {done ? <CheckCircle2 className="w-4 h-4" /> : n}
               </div>
-              <span className={`text-xs hidden sm:block ${active ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>{label}</span>
-              {i < stepLabels.length - 1 && <div className={`h-px w-6 md:w-10 ${done ? 'bg-primary' : 'bg-border'}`} />}
+              <span className={`text-xs hidden sm:block font-semibold ${active ? 'text-foreground font-bold' : 'text-muted-foreground'}`}>{label}</span>
+              {i < stepLabels.length - 1 && <div className={`h-1 w-6 md:w-10 rounded-full ${done ? 'bg-primary shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)]' : 'bg-muted shadow-[inset_1px_1px_2px_rgba(163,177,198,0.2)]'}`} />}
             </div>
           )
         })}
@@ -184,21 +184,23 @@ export default function BookingForm({ onBooked }: Props) {
 
       {/* Step 1: Date & Time */}
       {step === 1 && (
-        <div className="space-y-5">
+        <div className="space-y-6">
           <div>
-            <div className="flex items-center gap-2 mb-3">
-              <CalendarDays className="w-4 h-4 text-primary" />
-              <h2 className="font-semibold text-foreground">Select a Date</h2>
+            <div className="flex items-center gap-2.5 mb-3.5">
+              <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center border border-emerald-100 shadow-[inset_1px_1px_2px_rgba(255,255,255,0.8)]">
+                <CalendarDays className="w-4 h-4 text-emerald-600" />
+              </div>
+              <h2 className="font-bold text-foreground text-sm tracking-tight">Select a Date</h2>
             </div>
             <div className="flex gap-2 flex-wrap">
               {dates.map(({ label, value }) => (
                 <button
                   key={value}
                   onClick={() => { setSelectedDate(value); setSelectedTime('') }}
-                  className={`px-3 py-2 rounded-xl text-sm border transition-all ${
+                  className={`px-3.5 py-2.5 text-sm font-semibold transition-all ${
                     selectedDate === value
-                      ? 'bg-primary text-primary-foreground border-primary'
-                      : 'bg-secondary text-secondary-foreground border-transparent hover:border-border'
+                      ? 'clay-chip-selected'
+                      : 'clay-chip text-muted-foreground hover:text-foreground hover:scale-102 active:scale-98'
                   }`}
                 >
                   {label}
@@ -208,9 +210,9 @@ export default function BookingForm({ onBooked }: Props) {
           </div>
 
           {selectedDate && (
-            <div>
-              <p className="text-sm font-medium text-foreground mb-3">Available Time Slots</p>
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+            <div className="space-y-3">
+              <p className="text-sm font-bold text-foreground tracking-tight">Available Time Slots</p>
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
                 {TIME_SLOTS.map(slot => {
                   const past = isSlotPast(selectedDate, slot)
                   const selected = selectedTime === slot
@@ -219,12 +221,12 @@ export default function BookingForm({ onBooked }: Props) {
                       key={slot}
                       disabled={past}
                       onClick={() => setSelectedTime(slot)}
-                      className={`py-2.5 px-3 rounded-xl text-sm border font-medium transition-all ${
+                      className={`py-2.5 px-3 text-sm font-semibold transition-all ${
                         selected
-                          ? 'bg-primary text-primary-foreground border-primary'
+                          ? 'clay-chip-selected'
                           : past
-                          ? 'bg-muted text-muted-foreground/50 border-transparent cursor-not-allowed line-through'
-                          : 'bg-secondary text-secondary-foreground border-transparent hover:border-border'
+                          ? 'bg-muted text-muted-foreground/30 border border-transparent cursor-not-allowed line-through opacity-50 py-2.5 px-3 rounded-xl'
+                          : 'clay-chip text-muted-foreground hover:text-foreground hover:scale-102 active:scale-98'
                       }`}
                     >
                       {slot}
@@ -236,7 +238,7 @@ export default function BookingForm({ onBooked }: Props) {
           )}
 
           <Button
-            className="w-full rounded-xl gap-1"
+            className="w-full clay-btn py-6 gap-1"
             disabled={!canStep1}
             onClick={() => setStep(2)}
           >
@@ -247,39 +249,43 @@ export default function BookingForm({ onBooked }: Props) {
 
       {/* Step 2: Patient Details */}
       {step === 2 && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 mb-1">
-            <User className="w-4 h-4 text-primary" />
-            <h2 className="font-semibold text-foreground">Patient Details</h2>
+        <div className="space-y-5">
+          <div className="flex items-center gap-2.5 mb-1">
+            <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center border border-emerald-100 shadow-[inset_1px_1px_2px_rgba(255,255,255,0.8)]">
+              <User className="w-4 h-4 text-emerald-600" />
+            </div>
+            <h2 className="font-bold text-foreground text-sm tracking-tight">Patient Details</h2>
           </div>
-          <p className="text-sm text-muted-foreground -mt-1">
-            Appointment on <span className="font-medium text-foreground">{format(parseISO(selectedDate), 'EEEE, MMMM d')}</span> at <span className="font-medium text-foreground">{selectedTime}</span>
-          </p>
+          <div className="clay-alert-success px-4 py-3 flex items-center justify-between gap-3 text-xs font-semibold">
+            <span>
+              Appointment scheduled on <span className="font-extrabold">{format(parseISO(selectedDate), 'EEEE, MMMM d')}</span> at <span className="font-extrabold">{selectedTime}</span>
+            </span>
+          </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="pname">Full Name</Label>
-            <Input id="pname" placeholder="John Doe" value={patientName} onChange={e => setPatientName(e.target.value)} />
+            <Label htmlFor="pname" className="text-xs font-bold text-muted-foreground tracking-wide uppercase">Full Name</Label>
+            <Input id="pname" placeholder="John Doe" className="clay-input" value={patientName} onChange={e => setPatientName(e.target.value)} />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="age">Age</Label>
-            <Input id="age" type="number" min="1" max="129" placeholder="28" value={age} onChange={e => setAge(e.target.value)} />
+            <Label htmlFor="age" className="text-xs font-bold text-muted-foreground tracking-wide uppercase">Age</Label>
+            <Input id="age" type="number" min="1" max="129" placeholder="28" className="clay-input" value={age} onChange={e => setAge(e.target.value)} />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="address">Address</Label>
-            <Input id="address" placeholder="123 Green Street, Delhi" value={address} onChange={e => setAddress(e.target.value)} />
+            <Label htmlFor="address" className="text-xs font-bold text-muted-foreground tracking-wide uppercase">Address</Label>
+            <Input id="address" placeholder="123 Green Street, Delhi" className="clay-input" value={address} onChange={e => setAddress(e.target.value)} />
           </div>
 
           {error && (
-            <div className="bg-destructive/10 border border-destructive/30 text-destructive text-sm rounded-xl px-4 py-3">
+            <div className="clay-alert-error text-xs font-semibold px-4 py-3">
               {error}
             </div>
           )}
 
-          <div className="flex gap-3">
-            <Button variant="outline" className="flex-1 rounded-xl gap-1" onClick={() => setStep(1)}>
+          <div className="flex gap-3 pt-2">
+            <Button variant="outline" className="flex-1 clay-btn-secondary py-5 gap-1 text-xs" onClick={() => setStep(1)}>
               <ChevronLeft className="w-4 h-4" /> Back
             </Button>
-            <Button className="flex-1 rounded-xl" disabled={!canStep2 || loading} onClick={handleBook}>
+            <Button className="flex-1 clay-btn py-5 text-xs" disabled={!canStep2 || loading} onClick={handleBook}>
               {loading ? 'Booking...' : 'Confirm Booking'}
             </Button>
           </div>
@@ -288,23 +294,22 @@ export default function BookingForm({ onBooked }: Props) {
 
       {/* Step 3: Success */}
       {step === 3 && (
-        <div className="flex flex-col items-center text-center py-6 space-y-4">
-          <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center">
+        <div className="flex flex-col items-center text-center py-6 space-y-5">
+          <div className="w-16 h-16 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center shadow-[inset_1.5px_1.5px_3px_rgba(255,255,255,0.8),4px_4px_10px_rgba(163,177,198,0.2)] animate-bounce">
             <CheckCircle2 className="w-9 h-9 text-emerald-500" />
           </div>
-          <div>
-            <h2 className="text-xl font-semibold text-foreground">Appointment Confirmed!</h2>
-            <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+          <div className="space-y-2">
+            <h2 className="text-xl font-bold tracking-tight text-foreground">Appointment Confirmed!</h2>
+            <p className="text-sm text-muted-foreground max-w-sm leading-relaxed">
               Your appointment is booked for{' '}
-              <span className="font-medium text-foreground">
+              <span className="font-bold text-foreground">
                 {format(parseISO(selectedDate), 'EEEE, MMMM d')}
               </span>{' '}
-              at <span className="font-medium text-foreground">{selectedTime}</span>.
+              at <span className="font-bold text-foreground">{selectedTime}</span>.
             </p>
           </div>
           <Button
-            variant="outline"
-            className="rounded-xl"
+            className="clay-btn-secondary px-6 py-5 text-sm"
             onClick={() => { setStep(1); setSelectedDate(''); setSelectedTime(''); setPatientName(''); setAge(''); setAddress('') }}
           >
             Book Another Appointment

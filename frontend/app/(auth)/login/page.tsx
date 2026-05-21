@@ -54,19 +54,19 @@ function LoginForm() {
           <span className="text-xl font-semibold text-foreground tracking-tight">MediBook</span>
         </div>
 
-        <div className="bg-card rounded-2xl border border-border shadow-sm p-8">
+        <div className="clay-card p-8">
           <h1 className="text-2xl font-semibold text-foreground mb-1 text-balance">Welcome back</h1>
           <p className="text-sm text-muted-foreground mb-6">Sign in to your MediBook account.</p>
 
           {justRegistered && (
-            <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm rounded-xl px-4 py-3 mb-4">
+            <div className="clay-alert-success text-sm px-4 py-3 mb-4">
               Account created successfully! Sign in to continue.
             </div>
           )}
 
           <form onSubmit={handleSubmit} noValidate className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="email">Email Address</Label>
+              <Label htmlFor="email" className="font-medium text-foreground ml-1">Email Address</Label>
               <Input
                 id="email"
                 type="email"
@@ -74,12 +74,13 @@ function LoginForm() {
                 placeholder="you@example.com"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
+                className="clay-input"
                 required
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="font-medium text-foreground ml-1">Password</Label>
               <div className="relative flex items-center">
                 <Input
                   id="password"
@@ -88,7 +89,7 @@ function LoginForm() {
                   placeholder="Enter your password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  className="pr-10"
+                  className="pr-10 clay-input"
                   required
                 />
                 <button
@@ -103,12 +104,12 @@ function LoginForm() {
             </div>
 
             {error && (
-              <div className="bg-destructive/10 border border-destructive/30 text-destructive text-sm rounded-xl px-4 py-3">
+              <div className="clay-alert-error text-sm px-4 py-3">
                 {error}
               </div>
             )}
 
-            <Button type="submit" className="w-full rounded-xl" disabled={!email || !password || loading}>
+            <Button type="submit" className="w-full clay-btn mt-2" disabled={!email || !password || loading}>
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>

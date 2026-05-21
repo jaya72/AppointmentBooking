@@ -42,12 +42,12 @@ export default function AnalyticsBar({ appointments }: Props) {
   return (
     <div className="grid grid-cols-3 gap-3">
       {metrics.map(m => (
-        <div key={m.label} className="bg-card rounded-2xl border border-border p-4 shadow-sm">
-          <div className={`w-9 h-9 rounded-xl ${m.bg} flex items-center justify-center mb-3`}>
-            <m.icon className={`w-5 h-5 ${m.color}`} />
+        <div key={m.label} className="clay-card clay-card-interactive p-4 md:p-5">
+          <div className="clay-inset w-9.5 h-9.5 rounded-xl flex items-center justify-center mb-3.5">
+            <m.icon className={`w-5 h-5 ${m.color} animate-pulse`} />
           </div>
-          <p className="text-2xl font-bold text-foreground">{m.value}</p>
-          <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{m.label}</p>
+          <p className="text-2xl font-bold text-foreground tracking-tight">{m.value}</p>
+          <p className="text-xs font-semibold text-muted-foreground mt-1 leading-relaxed">{m.label}</p>
         </div>
       ))}
     </div>
