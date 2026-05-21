@@ -1,0 +1,33 @@
+{
+  "users": [
+    {
+      "_id": "offline_usr_patient_default",
+      "name": "Default Patient",
+      "email": "patient@example.com",
+      "password": "$2b$10$9p5/G/eE723ToZgQhcAW..iBI6VcoG6XdGMAIot1YJnXmjNnU5d2m",
+      "role": "patient"
+    },
+    {
+      "_id": "offline_usr_doctor_default",
+      "name": "Dr. Smith",
+      "email": "doctor@example.com",
+      "password": "$2b$10$7f8BIj93TBPBQ1ZGR0dJO.1fjcsu66/IYZuRIOonw9/c6U5hEq7VG",
+      "role": "doctor"
+    }
+  ],
+  "appointments": [
+    {
+      "_id": "offline_apt_1779353065475_464",
+      "userId": "offline_usr_patient_default",
+      "name": "Default Patient",
+      "age": 28,
+      "address": "123 Green Street, Delhi",
+      "date": "2026-05-22",
+      "time": "10:00 AM",
+      "paymentStatus": "PENDING",
+      "meetingLink": "https://meet.jit.si/doctor-app-1779353065474-548",
+      "createdAt": "2026-05-21T08:44:25.475Z",
+      "updatedAt": "2026-05-21T08:44:25.475Z"
+    }
+  ]
+}
