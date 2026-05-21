@@ -1,11 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Video, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { parseISO, differenceInMinutes, format } from 'date-fns'
 
 interface MeetingButtonProps {
+  appointmentId: string
   date: string  // YYYY-MM-DD
   time: string  // e.g. "10:00 AM"
   meetingLink: string
@@ -34,7 +36,8 @@ function parseDatetime(date: string, time: string): Date | null {
   }
 }
 
-export function MeetingButton({ date, time, meetingLink }: MeetingButtonProps) {
+export function MeetingButton({ appointmentId, date, time, meetingLink }: MeetingButtonProps) {
+  const router = useRouter()
   const [now, setNow] = useState(new Date())
 
   useEffect(() => {
@@ -45,11 +48,9 @@ export function MeetingButton({ date, time, meetingLink }: MeetingButtonProps) {
   const apptTime = parseDatetime(date, time)
   if (!apptTime) {
     return (
-      <a href={meetingLink} target="_blank" rel="noopener noreferrer">
-        <Button size="sm" className="rounded-xl gap-1.5">
-          <Video className="w-4 h-4" /> Join Meeting
-        </Button>
-      </a>
+      <Button size="sm" className="rounded-xl gap-1.5" onClick={() => router.push(`/meeting/${appointmentId}`)}>
+        <Video className="w-4 h-4" /> Join Meeting
+      </Button>
     )
   }
 
@@ -74,13 +75,14 @@ export function MeetingButton({ date, time, meetingLink }: MeetingButtonProps) {
 
   if (isLive || isSoon) {
     return (
-      <a href={meetingLink} target="_blank" rel="noopener noreferrer" className="w-full block">
-        <Button className="w-full clay-btn py-5.5 text-xs flex items-center justify-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-[#064e3b] blink shrink-0" />
-          <Video className="w-4 h-4 text-[#064e3b] shrink-0" />
-          Join Meeting
-        </Button>
-      </a>
+      <Button
+        className="w-full clay-btn py-5.5 text-xs flex items-center justify-center gap-2"
+        onClick={() => router.push(`/meeting/${appointmentId}`)}
+      >
+        <span className="w-2 h-2 rounded-full bg-[#064e3b] blink shrink-0" />
+        <Video className="w-4 h-4 text-[#064e3b] shrink-0" />
+        Join Meeting
+      </Button>
     )
   }
 

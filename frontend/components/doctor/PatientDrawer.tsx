@@ -77,7 +77,7 @@ export default function PatientDrawer({ appointment, allAppointments, onClose }:
                   <StatusBadge status={appointment.paymentStatus} />
                 </div>
                 <div className="pt-1.5">
-                  <MeetingButton date={appointment.date} time={appointment.time} meetingLink={appointment.meetingLink} />
+                  <MeetingButton appointmentId={appointment._id} date={appointment.date} time={appointment.time} meetingLink={appointment.meetingLink} />
                 </div>
               </div>
 

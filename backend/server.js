@@ -5,6 +5,8 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const Razorpay = require("razorpay");
+const http = require("http");
+const { Server } = require("socket.io");
 
 const config = require("./config");
 const {
@@ -70,7 +72,8 @@ function readDb() {
             role: "doctor"
           }
         ],
-        appointments: []
+        appointments: [],
+        messages: []
       };
       fs.writeFileSync(DB_PATH, JSON.stringify(defaultDb, null, 2));
       console.log(`[Offline DB] Seeding default database at: ${DB_PATH}`);
@@ -78,7 +81,7 @@ function readDb() {
     return JSON.parse(fs.readFileSync(DB_PATH, "utf8"));
   } catch (error) {
     console.error("Error reading local db.json, returning empty structure:", error);
-    return { users: [], appointments: [] };
+    return { users: [], appointments: [], messages: [] };
   }
 }
 
@@ -133,8 +136,17 @@ const appointmentSchema = new mongoose.Schema({
   meetingLink: { type: String, required: true }
 }, { timestamps: true });
 
+const messageSchema = new mongoose.Schema({
+  appointmentId: { type: String, required: true, index: true },
+  senderId: { type: String, required: true },
+  senderName: { type: String, required: true },
+  senderRole: { type: String, enum: ["patient", "doctor"], required: true },
+  text: { type: String, required: true },
+}, { timestamps: true });
+
 const User = mongoose.model("User", userSchema);
 const Appointment = mongoose.model("Appointment", appointmentSchema);
+const Message = mongoose.model("Message", messageSchema);
 
 // Offline Mode fallback classes and objects
 const localUser = {
@@ -211,6 +223,42 @@ class AppointmentClass {
     db.appointments.push(newAppointment);
     writeDb(db);
     return newAppointment;
+  }
+}
+
+class localMessage {
+  constructor(data) {
+    this._id = `offline_msg_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+    this.appointmentId = data.appointmentId;
+    this.senderId = data.senderId;
+    this.senderName = data.senderName;
+    this.senderRole = data.senderRole;
+    this.text = data.text;
+    this.createdAt = new Date().toISOString();
+  }
+
+  async save() {
+    const db = readDb();
+    if (!db.messages) db.messages = [];
+    db.messages.push({
+      _id: this._id,
+      appointmentId: this.appointmentId,
+      senderId: this.senderId,
+      senderName: this.senderName,
+      senderRole: this.senderRole,
+      text: this.text,
+      createdAt: this.createdAt,
+    });
+    writeDb(db);
+    return this;
+  }
+
+  static find({ appointmentId }) {
+    const db = readDb();
+    if (!db.messages) db.messages = [];
+    return db.messages
+      .filter(m => m.appointmentId === appointmentId)
+      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
   }
 }
 
@@ -446,9 +494,108 @@ app.get("/appointments", authenticateToken, async (req, res, next) => {
   }
 });
 
+// Chat History Endpoint
+app.get("/messages/:appointmentId", authenticateToken, async (req, res, next) => {
+  try {
+    const MessageModel = mongoose.connection.readyState === 1 ? Message : localMessage;
+    const messages = await MessageModel.find({ appointmentId: req.params.appointmentId });
+    // Sort by createdAt ascending
+    const sorted = Array.isArray(messages) ? messages.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)) : messages;
+    res.json(sorted);
+  } catch (err) {
+    next(err);
+  }
+});
+
 // Standard Error Handling Fallback
 app.use(errorHandler);
 
-app.listen(config.PORT, () => {
+// Create HTTP server and attach Socket.io
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: ["http://localhost:3000", "http://localhost:3001", "http://localhost:5173"],
+    methods: ["GET", "POST"],
+  },
+});
+
+// Socket.io JWT authentication
+io.use((socket, next) => {
+  const token = socket.handshake.auth.token;
+  if (!token) return next(new Error("Authentication required"));
+  try {
+    const decoded = jwt.verify(token, config.JWT_SECRET);
+    socket.user = decoded;
+    next();
+  } catch (err) {
+    next(new Error("Invalid token"));
+  }
+});
+
+io.on("connection", (socket) => {
+  console.log(`[Socket] User connected: ${socket.user.id} (${socket.user.role})`);
+
+  socket.on("join-room", ({ appointmentId }) => {
+    const room = `apt-${appointmentId}`;
+    socket.join(room);
+    console.log(`[Socket] User ${socket.user.id} joined room ${room}`);
+  });
+
+  socket.on("send-message", async ({ appointmentId, text, senderName }) => {
+    try {
+      const MessageModel = mongoose.connection.readyState === 1 ? Message : localMessage;
+      const message = new MessageModel({
+        appointmentId,
+        senderId: socket.user.id,
+        senderName: senderName || "Unknown",
+        senderRole: socket.user.role,
+        text,
+      });
+      await message.save();
+
+      const room = `apt-${appointmentId}`;
+      io.to(room).emit("new-message", {
+        _id: message._id,
+        appointmentId: message.appointmentId,
+        senderId: message.senderId,
+        senderName: message.senderName,
+        senderRole: message.senderRole,
+        text: message.text,
+        createdAt: message.createdAt,
+      });
+    } catch (err) {
+      console.error("[Socket] Error saving message:", err);
+      socket.emit("error", { message: "Failed to send message" });
+    }
+  });
+
+  socket.on("typing", ({ appointmentId }) => {
+    const room = `apt-${appointmentId}`;
+    socket.to(room).emit("user-typing", {
+      userId: socket.user.id,
+      role: socket.user.role,
+    });
+  });
+
+  socket.on("stop-typing", ({ appointmentId }) => {
+    const room = `apt-${appointmentId}`;
+    socket.to(room).emit("user-stop-typing", {
+      userId: socket.user.id,
+    });
+  });
+
+  socket.on("leave-room", ({ appointmentId }) => {
+    const room = `apt-${appointmentId}`;
+    socket.leave(room);
+    console.log(`[Socket] User ${socket.user.id} left room ${room}`);
+  });
+
+  socket.on("disconnect", () => {
+    console.log(`[Socket] User disconnected: ${socket.user.id}`);
+  });
+});
+
+server.listen(config.PORT, () => {
   console.log(`Server running on port ${config.PORT}`);
+  console.log(`Socket.io ready for connections`);
 });

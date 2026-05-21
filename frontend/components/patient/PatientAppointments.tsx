@@ -91,7 +91,7 @@ export default function PatientAppointments({ refreshKey }: Props) {
             </div>
           </div>
 
-          <MeetingButton date={appt.date} time={appt.time} meetingLink={appt.meetingLink} />
+          <MeetingButton appointmentId={appt._id} date={appt.date} time={appt.time} meetingLink={appt.meetingLink} />
         </div>
       ))}
     </div>

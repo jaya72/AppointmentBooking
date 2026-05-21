@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { AuthProvider, useAuth } from '@/context/AuthContext'
+import { SocketProvider } from '@/context/SocketContext'
 import { SessionBanner } from '@/components/SessionBanner'
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
@@ -36,7 +37,9 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
-      <AuthGuard>{children}</AuthGuard>
+      <SocketProvider>
+        <AuthGuard>{children}</AuthGuard>
+      </SocketProvider>
     </AuthProvider>
   )
 }

@@ -57,3 +57,16 @@ export interface BookPayload {
   date: string
   time: string
 }
+
+export interface Message {
+  _id: string
+  appointmentId: string
+  senderId: string
+  senderName: string
+  senderRole: 'patient' | 'doctor'
+  text: string
+  createdAt: string
+}
+
+export const fetchMessages = (appointmentId: string) =>
+  api.get<Message[]>(`/messages/${appointmentId}`)
