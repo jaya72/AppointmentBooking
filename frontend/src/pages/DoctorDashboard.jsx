@@ -49,10 +49,14 @@ function DoctorDashboard() {
           <p>
             <strong>Time:</strong> {item.time}
           </p>
-
+        <a
+           href={item.meetingLink}
+           target="_blank"
+        >
           <button>
-            Start Video Call
+           Start Video Call
           </button>
+        </a>
         </div>
       ))}
     </div>

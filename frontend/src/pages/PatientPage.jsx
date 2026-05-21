@@ -3,12 +3,18 @@ import axios from "axios";
 import "../App.css";
 
 function App() {
+
+   const token =
+    localStorage.getItem("token"); // Get token from localStorage (for feature: patient sees booking form only after login)
+
   const [formData, setFormData] = useState({
     name: "",
     age: "",
     address: "",
     date: "",
     time: "",
+    paymentStatus: "PAID",
+    userId: localStorage.getItem("userId"), // Assuming userId is stored in localStorage after login;(for feature: patient only sees his appointments)
   });
 
   const [appointments, setAppointments] = useState([]);
@@ -26,7 +32,18 @@ function App() {
         "http://localhost:5000/appointments"
       );
 
-      setAppointments(response.data);
+      //setAppointments(response.data);
+      // Filter appointments based on logged in userId
+      const loggedInUserId =
+  localStorage.getItem("userId");
+
+const filteredAppointments =
+  response.data.filter(
+    (item) =>
+      item.userId === loggedInUserId
+  );
+
+setAppointments(filteredAppointments);
 
     } catch (error) {
       console.log(error);
@@ -55,6 +72,16 @@ function App() {
     }
   };
 
+if (!token) {   // If no token, show message to login (for feature: patient sees booking form only after login)
+  return (
+    <div className="container">
+      <h2>
+        Please login to book appointment
+      </h2>
+    </div>
+  );
+}
+  
   return (
     <div className="container">
       <h2>Doctor Appointment Booking</h2>
@@ -131,6 +158,25 @@ function App() {
           <p>
             <strong>Address:</strong> {item.address}
           </p>
+
+          <p>
+            <strong>Payment:</strong> {item.paymentStatus}
+          </p>
+          <a
+            href={item.meetingLink}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <button>
+              Join Video Call
+            </button>
+
+          </a>
+
+          <p>
+            <strong>Meeting Link:</strong> {item.meetingLink}
+          </p>
+
         </div>
       ))}
     </div>
