@@ -1,12 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { format, addDays, isBefore, startOfDay, parseISO, set as setDate } from 'date-fns'
-import { CalendarDays, User, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react'
+import { CalendarDays, User, CheckCircle2, ChevronLeft, ChevronRight, Stethoscope, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import api, { type BookPayload } from '@/lib/api'
+import api from '@/lib/api'
+
+interface Doctor {
+  _id: string
+  name: string
+  consultationFee: number
+}
 
 const TIME_SLOTS = [
   '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
@@ -58,8 +64,12 @@ function loadRazorpayScript(): Promise<boolean> {
 
 export default function BookingForm({ onBooked }: Props) {
   const [step, setStep] = useState(1)
+  const [doctors, setDoctors] = useState<Doctor[]>([])
+  const [selectedDoctorId, setSelectedDoctorId] = useState('')
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedTime, setSelectedTime] = useState('')
+  const [isEmergency, setIsEmergency] = useState(false)
+  const [customTime, setCustomTime] = useState('')
   const [patientName, setPatientName] = useState('')
   const [age, setAge] = useState('')
   const [address, setAddress] = useState('')
@@ -68,16 +78,37 @@ export default function BookingForm({ onBooked }: Props) {
 
   const dates = generateDateOptions()
 
-  const canStep1 = !!selectedDate && !!selectedTime
+  // Fetch doctors on mount
+  useEffect(() => {
+    async function loadDoctors() {
+      try {
+        const res = await api.get<Doctor[]>('/doctors')
+        setDoctors(res.data)
+        if (res.data.length > 0) {
+          setSelectedDoctorId(res.data[0]._id)
+        }
+      } catch (err) {
+        console.error('Failed to load doctors:', err)
+      }
+    }
+    loadDoctors()
+  }, [])
+
+  const selectedDoctor = doctors.find(d => d._id === selectedDoctorId)
+  const consultationFee = selectedDoctor?.consultationFee || 500
+
+  const canStep1 = !!selectedDoctorId && !!selectedDate && (isEmergency ? customTime.trim().length > 0 : !!selectedTime)
   const canStep2 = patientName.trim().length >= 2 && parseInt(age) > 0 && parseInt(age) < 130 && address.trim().length >= 5
 
   async function handleBook() {
     setLoading(true)
     setError('')
     try {
-      // Step A: Create payment order on backend
-      const orderRes = await api.post('/pay/order')
+      // Step A: Create payment order on backend for specific doctor
+      const orderRes = await api.post('/pay/order', { doctorId: selectedDoctorId })
       const orderData = orderRes.data
+
+      const bookingTime = isEmergency ? customTime.trim() : selectedTime
 
       // Step B: If mock mode is active, book directly
       if (orderData.mock) {
@@ -87,7 +118,9 @@ export default function BookingForm({ onBooked }: Props) {
           age: parseInt(age),
           address: address.trim(),
           date: selectedDate,
-          time: selectedTime,
+          time: bookingTime,
+          doctorId: selectedDoctorId,
+          isEmergency
         }
         await api.post('/book', payload)
         setStep(3)
@@ -108,7 +141,7 @@ export default function BookingForm({ onBooked }: Props) {
         amount: orderData.amount,
         currency: 'INR',
         name: 'MediBook Appointment',
-        description: `Booking for ${patientName}`,
+        description: `Booking with ${selectedDoctor?.name || 'Doctor'}`,
         order_id: orderData.orderId,
         handler: async function (response: any) {
           setLoading(true)
@@ -118,7 +151,9 @@ export default function BookingForm({ onBooked }: Props) {
               age: parseInt(age),
               address: address.trim(),
               date: selectedDate,
-              time: selectedTime,
+              time: bookingTime,
+              doctorId: selectedDoctorId,
+              isEmergency,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_order_id: response.razorpay_order_id,
               razorpay_signature: response.razorpay_signature,
@@ -185,6 +220,40 @@ export default function BookingForm({ onBooked }: Props) {
       {/* Step 1: Date & Time */}
       {step === 1 && (
         <div className="space-y-6">
+          {/* Doctor Selection */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2.5 mb-1">
+              <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 shadow-[inset_1px_1px_2px_rgba(255,255,255,0.8)]">
+                <Stethoscope className="w-4 h-4 text-primary" />
+              </div>
+              <h2 className="font-bold text-foreground text-sm tracking-tight">Select Doctor</h2>
+            </div>
+            {doctors.length === 0 ? (
+              <p className="text-xs text-muted-foreground">Loading available doctors...</p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {doctors.map(doc => (
+                  <button
+                    key={doc._id}
+                    type="button"
+                    onClick={() => { setSelectedDoctorId(doc._id) }}
+                    className={`p-4 text-left rounded-2xl transition-all border ${
+                      selectedDoctorId === doc._id
+                        ? 'border-primary bg-primary/5 shadow-[inset_1px_1px_2.5px_rgba(255,255,255,0.7),3px_3px_8px_rgba(163,177,198,0.2)] scale-101'
+                        : 'border-transparent clay-card hover:scale-101 active:scale-99'
+                    }`}
+                  >
+                    <p className="font-bold text-foreground text-sm">{doc.name}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Consultation Fee: <span className="font-extrabold text-primary">₹{doc.consultationFee || 500}</span>
+                    </p>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Date Picker */}
           <div>
             <div className="flex items-center gap-2.5 mb-3.5">
               <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center border border-emerald-100 shadow-[inset_1px_1px_2px_rgba(255,255,255,0.8)]">
@@ -196,6 +265,7 @@ export default function BookingForm({ onBooked }: Props) {
               {dates.map(({ label, value }) => (
                 <button
                   key={value}
+                  type="button"
                   onClick={() => { setSelectedDate(value); setSelectedTime('') }}
                   className={`px-3.5 py-2.5 text-sm font-semibold transition-all ${
                     selectedDate === value
@@ -210,30 +280,76 @@ export default function BookingForm({ onBooked }: Props) {
           </div>
 
           {selectedDate && (
-            <div className="space-y-3">
-              <p className="text-sm font-bold text-foreground tracking-tight">Available Time Slots</p>
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
-                {TIME_SLOTS.map(slot => {
-                  const past = isSlotPast(selectedDate, slot)
-                  const selected = selectedTime === slot
-                  return (
-                    <button
-                      key={slot}
-                      disabled={past}
-                      onClick={() => setSelectedTime(slot)}
-                      className={`py-2.5 px-3 text-sm font-semibold transition-all ${
-                        selected
-                          ? 'clay-chip-selected'
-                          : past
-                          ? 'bg-muted text-muted-foreground/30 border border-transparent cursor-not-allowed line-through opacity-50 py-2.5 px-3 rounded-xl'
-                          : 'clay-chip text-muted-foreground hover:text-foreground hover:scale-102 active:scale-98'
-                      }`}
-                    >
-                      {slot}
-                    </button>
-                  )
-                })}
+            <div className="space-y-4">
+              {/* Emergency Toggle Switch */}
+              <div className="clay-card p-4 bg-destructive/5 border border-destructive/20 flex items-center justify-between gap-4">
+                <div className="space-y-0.5">
+                  <Label htmlFor="emergency" className="font-extrabold text-destructive flex items-center gap-1.5 text-sm cursor-pointer">
+                    <AlertTriangle className="w-4 h-4" /> Emergency Custom Time
+                  </Label>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Need immediate assistance? Select a custom time slot instead of preset intervals.
+                  </p>
+                </div>
+                <button
+                  id="emergency"
+                  type="button"
+                  onClick={() => {
+                    setIsEmergency(!isEmergency);
+                    setSelectedTime('');
+                    setCustomTime('');
+                  }}
+                  className={`w-12 h-6.5 rounded-full p-1 transition-colors flex items-center ${
+                    isEmergency ? 'bg-destructive shadow-[inset_1.5px_1.5px_3px_rgba(0,0,0,0.15)]' : 'bg-muted shadow-[inset_1.5px_1.5px_3px_rgba(0,0,0,0.1)]'
+                  }`}
+                >
+                  <div
+                    className={`w-4.5 h-4.5 rounded-full bg-white transition-transform shadow-[1px_1px_3px_rgba(0,0,0,0.2)] ${
+                      isEmergency ? 'translate-x-5.5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
               </div>
+
+              {isEmergency ? (
+                <div className="space-y-2">
+                  <Label htmlFor="customTime" className="text-xs font-bold text-muted-foreground tracking-wide uppercase">Custom Time / Urgency Note</Label>
+                  <Input
+                    id="customTime"
+                    placeholder="e.g. ASAP, 2:30 AM, Within 30 minutes"
+                    className="clay-input"
+                    value={customTime}
+                    onChange={e => setCustomTime(e.target.value)}
+                  />
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-sm font-bold text-foreground tracking-tight">Available Time Slots</p>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
+                    {TIME_SLOTS.map(slot => {
+                      const past = isSlotPast(selectedDate, slot)
+                      const selected = selectedTime === slot
+                      return (
+                        <button
+                          key={slot}
+                          type="button"
+                          disabled={past}
+                          onClick={() => setSelectedTime(slot)}
+                          className={`py-2.5 px-3 text-sm font-semibold transition-all ${
+                            selected
+                              ? 'clay-chip-selected'
+                              : past
+                              ? 'bg-muted text-muted-foreground/30 border border-transparent cursor-not-allowed line-through opacity-50 py-2.5 px-3 rounded-xl'
+                              : 'clay-chip text-muted-foreground hover:text-foreground hover:scale-102 active:scale-98'
+                          }`}
+                        >
+                          {slot}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -256,10 +372,17 @@ export default function BookingForm({ onBooked }: Props) {
             </div>
             <h2 className="font-bold text-foreground text-sm tracking-tight">Patient Details</h2>
           </div>
-          <div className="clay-alert-success px-4 py-3 flex items-center justify-between gap-3 text-xs font-semibold">
-            <span>
-              Appointment scheduled on <span className="font-extrabold">{format(parseISO(selectedDate), 'EEEE, MMMM d')}</span> at <span className="font-extrabold">{selectedTime}</span>
-            </span>
+          <div className="clay-alert-success px-4 py-3 flex flex-col gap-1 text-xs font-semibold">
+            <div>
+              Appointment with <span className="font-extrabold text-primary">{selectedDoctor?.name}</span>
+            </div>
+            <div>
+              Scheduled on <span className="font-extrabold">{format(parseISO(selectedDate), 'EEEE, MMMM d')}</span> at <span className="font-extrabold">{isEmergency ? customTime : selectedTime}</span>
+            </div>
+            <div className="mt-1 pt-1 border-t border-emerald-200/50 flex justify-between font-bold">
+              <span>Consultation Fee:</span>
+              <span className="text-primary font-black">₹{consultationFee}</span>
+            </div>
           </div>
 
           <div className="space-y-1.5">
@@ -282,11 +405,11 @@ export default function BookingForm({ onBooked }: Props) {
           )}
 
           <div className="flex gap-3 pt-2">
-            <Button variant="outline" className="flex-1 clay-btn-secondary py-5 gap-1 text-xs" onClick={() => setStep(1)}>
+            <Button variant="outline" type="button" className="flex-1 clay-btn-secondary py-5 gap-1 text-xs" onClick={() => setStep(1)}>
               <ChevronLeft className="w-4 h-4" /> Back
             </Button>
-            <Button className="flex-1 clay-btn py-5 text-xs" disabled={!canStep2 || loading} onClick={handleBook}>
-              {loading ? 'Booking...' : 'Confirm Booking'}
+            <Button className="flex-1 clay-btn py-5 text-xs font-bold" disabled={!canStep2 || loading} onClick={handleBook}>
+              {loading ? 'Processing...' : `Pay ₹${consultationFee} & Book`}
             </Button>
           </div>
         </div>
@@ -301,16 +424,28 @@ export default function BookingForm({ onBooked }: Props) {
           <div className="space-y-2">
             <h2 className="text-xl font-bold tracking-tight text-foreground">Appointment Confirmed!</h2>
             <p className="text-sm text-muted-foreground max-w-sm leading-relaxed">
-              Your appointment is booked for{' '}
+              Your appointment with <span className="font-extrabold text-foreground">{selectedDoctor?.name}</span> is booked for{' '}
               <span className="font-bold text-foreground">
                 {format(parseISO(selectedDate), 'EEEE, MMMM d')}
               </span>{' '}
-              at <span className="font-bold text-foreground">{selectedTime}</span>.
+              at <span className="font-bold text-foreground">{isEmergency ? customTime : selectedTime}</span>.
+            </p>
+            <p className="text-xs font-extrabold text-primary pt-1">
+              Paid: ₹{consultationFee} (Payment ID: Confirmed)
             </p>
           </div>
           <Button
             className="clay-btn-secondary px-6 py-5 text-sm"
-            onClick={() => { setStep(1); setSelectedDate(''); setSelectedTime(''); setPatientName(''); setAge(''); setAddress('') }}
+            onClick={() => {
+              setStep(1)
+              setSelectedDate('')
+              setSelectedTime('')
+              setIsEmergency(false)
+              setCustomTime('')
+              setPatientName('')
+              setAge('')
+              setAddress('')
+            }}
           >
             Book Another Appointment
           </Button>

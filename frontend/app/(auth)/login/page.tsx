@@ -16,23 +16,25 @@ function LoginForm() {
   const justRegistered = searchParams.get('registered') === '1'
   const { login } = useAuth()
 
-  const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [showPw, setShowPw] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
+  const isPhoneValid = /^[0-9]{10}$/.test(phone)
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!email || !password) return
+    if (!phone || !password) return
     setLoading(true)
     setError('')
     try {
-      console.log('[v0] Attempting login with:', { email: email.trim() })
-      const res = await api.post('/login', { email: email.trim(), password })
+      console.log('[v0] Attempting login with:', { phone: phone.trim() })
+      const res = await api.post('/login', { phone: phone.trim(), password })
       console.log('[v0] Login response:', res.data)
       const data = res.data
-      login({ token: data.token, role: data.role, userId: data.userId })
+      login({ token: data.token, role: data.role, userId: data.userId, name: data.name, consultationFee: data.consultationFee })
       if (data.role === 'doctor') router.push('/doctor')
       else router.push('/patient')
     } catch (err: unknown) {
@@ -66,15 +68,16 @@ function LoginForm() {
 
           <form onSubmit={handleSubmit} noValidate className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="email" className="font-medium text-foreground ml-1">Email Address</Label>
+              <Label htmlFor="phone" className="font-medium text-foreground ml-1">Phone Number</Label>
               <Input
-                id="email"
-                type="email"
-                autoComplete="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
+                id="phone"
+                type="tel"
+                autoComplete="tel"
+                placeholder="9876543210"
+                value={phone}
+                onChange={e => setPhone(e.target.value.replace(/[^0-9]/g, ''))}
                 className="clay-input"
+                maxLength={10}
                 required
               />
             </div>
@@ -109,7 +112,7 @@ function LoginForm() {
               </div>
             )}
 
-            <Button type="submit" className="w-full clay-btn mt-2" disabled={!email || !password || loading}>
+            <Button type="submit" className="w-full clay-btn mt-2" disabled={!isPhoneValid || loading}>
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>

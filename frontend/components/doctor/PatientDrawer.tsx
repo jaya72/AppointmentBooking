@@ -74,8 +74,16 @@ export default function PatientDrawer({ appointment, allAppointments, onClose }:
                 </div>
                 <div className="flex items-center gap-2.5 text-xs font-semibold">
                   <CreditCard className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <StatusBadge status={appointment.paymentStatus} />
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <StatusBadge status={appointment.paymentStatus} />
+                    <span className="font-black text-primary bg-primary/5 px-2 py-0.5 rounded-lg border border-primary/10">₹{appointment.amount || 500}</span>
+                  </div>
                 </div>
+                {appointment.isEmergency && (
+                  <div className="clay-alert-error flex items-center gap-1.5 px-3 py-2 text-[10px] font-black tracking-widest uppercase rounded-xl animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.15)]">
+                    🚨 Emergency Custom Slot
+                  </div>
+                )}
                 <div className="pt-1.5">
                   <MeetingButton appointmentId={appointment._id} date={appointment.date} time={appointment.time} meetingLink={appointment.meetingLink} />
                 </div>

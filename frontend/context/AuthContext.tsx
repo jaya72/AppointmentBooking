@@ -24,8 +24,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const role = localStorage.getItem('role') as 'patient' | 'doctor' | null
       const userId = localStorage.getItem('userId')
       const name = localStorage.getItem('name') || undefined
+      const feeStr = localStorage.getItem('consultationFee')
+      const consultationFee = feeStr ? parseInt(feeStr, 10) : undefined
       if (token && role && userId) {
-        setUser({ token, role, userId, name })
+        setUser({ token, role, userId, name, consultationFee })
       }
     } catch {
       // ignore
@@ -39,6 +41,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('role', userData.role)
     localStorage.setItem('userId', userData.userId)
     if (userData.name) localStorage.setItem('name', userData.name)
+    if (userData.consultationFee !== undefined) {
+      localStorage.setItem('consultationFee', userData.consultationFee.toString())
+    }
     setUser(userData)
   }, [])
 
@@ -47,6 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('role')
     localStorage.removeItem('userId')
     localStorage.removeItem('name')
+    localStorage.removeItem('consultationFee')
     setUser(null)
   }, [])
 

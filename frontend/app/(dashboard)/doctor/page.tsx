@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { Stethoscope, LogOut, RefreshCw } from 'lucide-react'
+import { useState, useCallback, useEffect } from 'react'
+import { Stethoscope, LogOut, RefreshCw, DollarSign } from 'lucide-react'
 import useSWR from 'swr'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
 import api, { type Appointment } from '@/lib/api'
@@ -19,9 +20,41 @@ async function fetchAppointments(): Promise<Appointment[]> {
 }
 
 export default function DoctorPage() {
-  const { user, logout } = useAuth()
+  const { user, login, logout } = useAuth()
   const router = useRouter()
   const [selectedAppt, setSelectedAppt] = useState<Appointment | null>(null)
+
+  const [fee, setFee] = useState<string>('')
+  const [feeLoading, setFeeLoading] = useState(false)
+  const [feeError, setFeeError] = useState('')
+  const [feeSuccess, setFeeSuccess] = useState('')
+
+  // Sync fee on mount/load from Auth Context or fetch dynamically
+  useEffect(() => {
+    if (user?.consultationFee) {
+      setFee(user.consultationFee.toString())
+    }
+  }, [user?.consultationFee])
+
+  useEffect(() => {
+    async function loadDoctorFee() {
+      try {
+        const res = await api.get('/doctors')
+        const myDoc = res.data.find((d: any) => d._id === user?.userId)
+        if (myDoc && myDoc.consultationFee) {
+          setFee(myDoc.consultationFee.toString())
+          if (user) {
+            login({ ...user, consultationFee: myDoc.consultationFee })
+          }
+        }
+      } catch (err) {
+        console.error('Failed to sync doctor fee:', err)
+      }
+    }
+    if (user?.userId && !user.consultationFee) {
+      loadDoctorFee()
+    }
+  }, [user?.userId, user?.consultationFee, login])
 
   const { data, error, isLoading, mutate } = useSWR(
     'doctor-appointments',
@@ -34,6 +67,28 @@ export default function DoctorPage() {
   function handleLogout() {
     logout()
     router.push('/login')
+  }
+
+  async function handleUpdateFee(e: React.FormEvent) {
+    e.preventDefault()
+    if (!fee || parseInt(fee) <= 0) return
+    setFeeLoading(true)
+    setFeeError('')
+    setFeeSuccess('')
+    try {
+      const res = await api.put('/doctor/fee', { consultationFee: parseInt(fee) })
+      setFeeSuccess('Consultation fee updated!')
+      if (user) {
+        login({ ...user, consultationFee: res.data.consultationFee })
+      }
+      setTimeout(() => setFeeSuccess(''), 3000)
+    } catch (err: any) {
+      console.error(err)
+      const msg = err.response?.data?.error || 'Failed to update consultation fee.'
+      setFeeError(msg)
+    } finally {
+      setFeeLoading(false)
+    }
   }
 
   const appointments = data || []
@@ -95,22 +150,78 @@ export default function DoctorPage() {
           <AnalyticsBar appointments={appointments} />
         )}
 
-        {/* Timeline */}
-        <div>
-          <h2 className="font-semibold text-foreground mb-4">Schedule</h2>
-          {isLoading && <AppointmentSkeletonList count={3} />}
-          {error && (
-            <div className="bg-destructive/10 border border-destructive/20 rounded-2xl p-5 text-sm text-destructive">
-              Failed to load appointments.{' '}
-              <button onClick={refresh} className="underline">Retry</button>
+        {/* Dashboard Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+          {/* Timeline - takes 2 cols on md */}
+          <div className="md:col-span-2 space-y-4">
+            <h2 className="font-semibold text-foreground">Schedule</h2>
+            {isLoading && <AppointmentSkeletonList count={3} />}
+            {error && (
+              <div className="bg-destructive/10 border border-destructive/20 rounded-2xl p-5 text-sm text-destructive">
+                Failed to load appointments.{' '}
+                <button onClick={refresh} className="underline">Retry</button>
+              </div>
+            )}
+            {!isLoading && !error && (
+              <AppointmentTimeline
+                appointments={appointments}
+                onSelect={setSelectedAppt}
+              />
+            )}
+          </div>
+
+          {/* Consultation Fee Settings Panel - takes 1 col */}
+          <div className="space-y-4">
+            <h2 className="font-semibold text-foreground">Settings</h2>
+            <div className="clay-card p-5 space-y-4">
+              <div className="flex items-center gap-2.5 mb-1">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 shadow-[inset_1px_1px_2px_rgba(255,255,255,0.8)]">
+                  <DollarSign className="w-4.5 h-4.5 text-primary animate-pulse" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-foreground text-sm tracking-tight">Consultation Fee</h3>
+                  <p className="text-[10px] text-muted-foreground leading-none mt-0.5">Set appointment pricing rate</p>
+                </div>
+              </div>
+
+              <form onSubmit={handleUpdateFee} className="space-y-3">
+                <div className="space-y-1.5">
+                  <div className="relative flex items-center">
+                    <span className="absolute left-3 text-sm font-bold text-muted-foreground">₹</span>
+                    <Input
+                      type="number"
+                      min="1"
+                      placeholder="500"
+                      value={fee}
+                      onChange={e => setFee(e.target.value.replace(/[^0-9]/g, ''))}
+                      className="pl-7 clay-input text-sm font-bold"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {feeError && (
+                  <div className="clay-alert-error text-[11px] font-semibold px-3 py-2">
+                    {feeError}
+                  </div>
+                )}
+
+                {feeSuccess && (
+                  <div className="clay-alert-success text-[11px] font-semibold px-3 py-2">
+                    {feeSuccess}
+                  </div>
+                )}
+
+                <Button
+                  type="submit"
+                  className="w-full clay-btn py-5 text-xs font-bold"
+                  disabled={feeLoading || !fee || parseInt(fee) <= 0}
+                >
+                  {feeLoading ? 'Updating...' : 'Save Fee'}
+                </Button>
+              </form>
             </div>
-          )}
-          {!isLoading && !error && (
-            <AppointmentTimeline
-              appointments={appointments}
-              onSelect={setSelectedAppt}
-            />
-          )}
+          </div>
         </div>
       </main>
 

@@ -52,31 +52,57 @@ let isDbConnected = false;
 // Pre-seed local JSON DB helper if MongoDB connection fails
 function readDb() {
   try {
-    if (!fs.existsSync(DB_PATH)) {
-      const patientHash = bcrypt.hashSync("password123", 10);
-      const doctorHash = bcrypt.hashSync("password123", 10);
-      const defaultDb = {
-        users: [
-          {
-            _id: "offline_usr_patient_default",
-            name: "Default Patient",
-            email: "patient@example.com",
-            password: patientHash,
-            role: "patient"
-          },
-          {
-            _id: "offline_usr_doctor_default",
-            name: "Dr. Smith",
-            email: "doctor@example.com",
-            password: doctorHash,
-            role: "doctor"
-          }
-        ],
-        appointments: [],
-        messages: []
-      };
+    let exists = fs.existsSync(DB_PATH);
+    const patientHash = bcrypt.hashSync("password123", 10);
+    const doctorHash = bcrypt.hashSync("password123", 10);
+    const defaultDb = {
+      users: [
+        {
+          _id: "offline_usr_patient_default",
+          name: "Default Patient",
+          phone: "9876543210",
+          password: patientHash,
+          role: "patient"
+        },
+        {
+          _id: "offline_usr_doctor_default",
+          name: "Dr. Smith",
+          phone: "9999999999",
+          password: doctorHash,
+          role: "doctor",
+          consultationFee: 500
+        }
+      ],
+      appointments: [],
+      messages: []
+    };
+    if (!exists) {
       fs.writeFileSync(DB_PATH, JSON.stringify(defaultDb, null, 2));
       console.log(`[Offline DB] Seeding default database at: ${DB_PATH}`);
+    } else {
+      // Auto-migrate db.json if it still has email fields or lacks consultationFee
+      const db = JSON.parse(fs.readFileSync(DB_PATH, "utf8"));
+      let migrated = false;
+      if (db.users) {
+        db.users = db.users.map(u => {
+          if (u.email === "patient@example.com") {
+            u.phone = "9876543210";
+            delete u.email;
+            migrated = true;
+          }
+          if (u.email === "doctor@example.com") {
+            u.phone = "9999999999";
+            u.consultationFee = 500;
+            delete u.email;
+            migrated = true;
+          }
+          return u;
+        });
+      }
+      if (migrated) {
+        fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2));
+        console.log(`[Offline DB] Automatically migrated existing db.json to phone/fee schemas`);
+      }
     }
     return JSON.parse(fs.readFileSync(DB_PATH, "utf8"));
   } catch (error) {
@@ -93,10 +119,51 @@ function writeDb(data) {
   }
 }
 
+async function seedMongoDb() {
+  try {
+    // Drop the legacy email unique index in MongoDB to support phone number identifier schema
+    try {
+      await User.collection.dropIndex("email_1");
+      console.log("[MongoDB Setup] Dropped legacy unique email index successfully");
+    } catch (e) {
+      // Index might not exist, already dropped, or not loaded yet
+    }
+
+    const patientHash = bcrypt.hashSync("password123", 10);
+    const doctorHash = bcrypt.hashSync("password123", 10);
+    
+    const patientExists = await User.findOne({ phone: "9876543210" });
+    if (!patientExists) {
+      await User.create({
+        name: "Default Patient",
+        phone: "9876543210",
+        password: patientHash,
+        role: "patient"
+      });
+      console.log("[MongoDB Seed] Created default patient user");
+    }
+
+    const doctorExists = await User.findOne({ phone: "9999999999" });
+    if (!doctorExists) {
+      await User.create({
+        name: "Dr. Smith",
+        phone: "9999999999",
+        password: doctorHash,
+        role: "doctor",
+        consultationFee: 500
+      });
+      console.log("[MongoDB Seed] Created default doctor user");
+    }
+  } catch (err) {
+    console.error("Error seeding MongoDB:", err);
+  }
+}
+
 mongoose.connect(config.MONGO_URI)
   .then(() => {
     console.log("MongoDB Connected Successfully");
     isDbConnected = true;
+    seedMongoDb();
   })
   .catch((err) => {
     console.error("MongoDB Connection Failure:", err.message);
@@ -120,20 +187,24 @@ app.use((req, res, next) => {
 // Database Schemas and Models (Mongoose)
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
+  phone: { type: String, required: true, unique: true, index: true },
   password: { type: String, required: true },
-  role: { type: String, required: true, enum: ["patient", "doctor"] }
+  role: { type: String, required: true, enum: ["patient", "doctor"] },
+  consultationFee: { type: Number, default: 500 }
 });
 
 const appointmentSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  doctorId: { type: String, required: true },
   name: { type: String, required: true },
   age: { type: Number, required: true },
   address: { type: String, required: true },
   date: { type: String, required: true },
   time: { type: String, required: true },
   paymentStatus: { type: String, required: true, default: "PAID" },
-  meetingLink: { type: String, required: true }
+  meetingLink: { type: String, required: true },
+  isEmergency: { type: Boolean, default: false },
+  amount: { type: Number, required: true }
 }, { timestamps: true });
 
 const messageSchema = new mongoose.Schema({
@@ -152,11 +223,21 @@ const Message = mongoose.model("Message", messageSchema);
 const localUser = {
   findOne: async (query) => {
     const db = readDb();
-    if (query.email) {
-      const emailLower = query.email.toLowerCase();
-      return db.users.find(u => u.email === emailLower) || null;
+    if (query.phone) {
+      return db.users.find(u => u.phone === query.phone) || null;
+    }
+    if (query._id) {
+      return db.users.find(u => u._id === query._id) || null;
     }
     return null;
+  },
+  find: async (query) => {
+    const db = readDb();
+    let results = db.users || [];
+    if (query && query.role) {
+      results = results.filter(u => u.role === query.role);
+    }
+    return results;
   }
 };
 
@@ -270,10 +351,10 @@ app.get("/", (req, res) => {
 // User Registration Route
 app.post("/signup", rateLimiter, async (req, res, next) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, phone, password, role } = req.body;
 
     // Server-side Input Validation
-    if (!name || !email || !password || !role) {
+    if (!name || !phone || !password || !role) {
       return res.status(400).json({ success: false, error: "All fields are required" });
     }
 
@@ -285,15 +366,15 @@ app.post("/signup", rateLimiter, async (req, res, next) => {
       return res.status(400).json({ success: false, error: "Password must be at least 6 characters long" });
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({ success: false, error: "Invalid email format" });
+    const phoneRegex = /^[0-9]{10}$/;
+    if (!phoneRegex.test(phone)) {
+      return res.status(400).json({ success: false, error: "Invalid phone number format. Must be 10 digits." });
     }
 
     // Check for duplicate account
-    const existingUser = await (isDbConnected ? User.findOne({ email: email.toLowerCase() }) : localUser.findOne({ email: email.toLowerCase() }));
+    const existingUser = await (isDbConnected ? User.findOne({ phone }) : localUser.findOne({ phone }));
     if (existingUser) {
-      return res.status(409).json({ success: false, error: "User already exists with this email" });
+      return res.status(409).json({ success: false, error: "User already exists with this phone number" });
     }
 
     // Hash the password
@@ -302,15 +383,17 @@ app.post("/signup", rateLimiter, async (req, res, next) => {
     const newUser = isDbConnected
       ? new User({
           name,
-          email: email.toLowerCase(),
+          phone,
           password: hashedPassword,
-          role
+          role,
+          consultationFee: role === "doctor" ? 500 : undefined
         })
       : new UserClass({
           name,
-          email: email.toLowerCase(),
+          phone,
           password: hashedPassword,
-          role
+          role,
+          consultationFee: role === "doctor" ? 500 : undefined
         });
 
     await newUser.save();
@@ -324,28 +407,28 @@ app.post("/signup", rateLimiter, async (req, res, next) => {
 // User Login Route
 app.post("/login", rateLimiter, async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { phone, password } = req.body;
 
     // Server-side Input Validation
-    if (!email || !password) {
-      return res.status(400).json({ success: false, error: "Email and password are required" });
+    if (!phone || !password) {
+      return res.status(400).json({ success: false, error: "Phone number and password are required" });
     }
 
     // Lookup user
-    const user = await (isDbConnected ? User.findOne({ email: email.toLowerCase() }) : localUser.findOne({ email: email.toLowerCase() }));
+    const user = await (isDbConnected ? User.findOne({ phone }) : localUser.findOne({ phone }));
     if (!user) {
-      return res.status(401).json({ success: false, error: "Invalid email or password" });
+      return res.status(401).json({ success: false, error: "Invalid phone number or password" });
     }
 
     // Verify Password match
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ success: false, error: "Invalid email or password" });
+      return res.status(401).json({ success: false, error: "Invalid phone number or password" });
     }
 
     // Sign JWT token
     const token = jwt.sign(
-      { id: user._id, role: user.role },
+      { id: user._id, role: user.role, name: user.name },
       config.JWT_SECRET,
       { expiresIn: "24h" }
     );
@@ -355,7 +438,9 @@ app.post("/login", rateLimiter, async (req, res, next) => {
       message: "Login successful",
       token,
       role: user.role,
-      userId: user._id
+      userId: user._id,
+      name: user.name,
+      consultationFee: user.consultationFee
     });
 
   } catch (error) {
@@ -366,7 +451,21 @@ app.post("/login", rateLimiter, async (req, res, next) => {
 // Create Razorpay Payment Order Endpoint (Patient only)
 app.post("/pay/order", authenticateToken, requireRole(["patient"]), async (req, res, next) => {
   try {
-    const amount = 50000; // Rs 500.00 in paise
+    const { doctorId } = req.body;
+    if (!doctorId) {
+      return res.status(400).json({ success: false, error: "Doctor ID is required for payment" });
+    }
+
+    // Look up doctor
+    let doctor;
+    if (isDbConnected) {
+      doctor = await User.findById(doctorId);
+    } else {
+      doctor = await localUser.findOne({ _id: doctorId });
+    }
+
+    const fee = doctor && doctor.consultationFee ? doctor.consultationFee : 500;
+    const amount = fee * 100; // in paise
 
     if (!razorpayInstance) {
       // Sandbox/Mock Mode fallback if credentials are not configured
@@ -403,11 +502,11 @@ app.post("/pay/order", authenticateToken, requireRole(["patient"]), async (req, 
 // Book an Appointment Endpoint (Patient only)
 app.post("/book", authenticateToken, requireRole(["patient"]), async (req, res, next) => {
   try {
-    const { name, age, address, date, time, razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
+    const { name, age, address, date, time, doctorId, isEmergency, razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
 
     // Server-side validation
-    if (!name || !age || !address || !date || !time) {
-      return res.status(400).json({ success: false, error: "All booking fields are required" });
+    if (!name || !age || !address || !date || !time || !doctorId) {
+      return res.status(400).json({ success: false, error: "All booking fields are required, including Doctor" });
     }
 
     const parsedAge = parseInt(age, 10);
@@ -425,6 +524,15 @@ app.post("/book", authenticateToken, requireRole(["patient"]), async (req, res, 
       }
     }
 
+    // Fetch doctor's fee
+    let doctor;
+    if (isDbConnected) {
+      doctor = await User.findById(doctorId);
+    } else {
+      doctor = await localUser.findOne({ _id: doctorId });
+    }
+    const amount = doctor && doctor.consultationFee ? doctor.consultationFee : 500;
+
     // Generate unique video conference identifier
     const meetingId = `doctor-app-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
@@ -434,23 +542,29 @@ app.post("/book", authenticateToken, requireRole(["patient"]), async (req, res, 
     const newAppointment = isDbConnected
       ? new Appointment({
           userId: req.user.id, // Derived securely from authenticated JWT
+          doctorId,
           name,
           age: parsedAge,
           address,
           date,
           time,
           paymentStatus,
-          meetingLink
+          meetingLink,
+          isEmergency: !!isEmergency,
+          amount
         })
       : new AppointmentClass({
           userId: req.user.id,
+          doctorId,
           name,
           age: parsedAge,
           address,
           date,
           time,
           paymentStatus,
-          meetingLink
+          meetingLink,
+          isEmergency: !!isEmergency,
+          amount
         });
 
     await newAppointment.save();
@@ -473,15 +587,22 @@ app.get("/appointments", authenticateToken, async (req, res, next) => {
 
     if (isDbConnected) {
       if (req.user.role === "doctor") {
-        // Doctors can view all bookings
-        appointments = await Appointment.find().sort({ createdAt: -1 });
+        // Doctors can only view bookings assigned to them (or legacy bookings without doctorId for backward compatibility)
+        appointments = await Appointment.find({
+          $or: [
+            { doctorId: req.user.id },
+            { doctorId: { $exists: false } },
+            { doctorId: null }
+          ]
+        }).sort({ createdAt: -1 });
       } else {
         // Patients can only view their own bookings
         appointments = await Appointment.find({ userId: req.user.id }).sort({ createdAt: -1 });
       }
     } else {
       if (req.user.role === "doctor") {
-        appointments = await localAppointment.find({}).sort({ createdAt: -1 });
+        const allApts = await localAppointment.find({}).sort({ createdAt: -1 });
+        appointments = allApts.filter(a => !a.doctorId || a.doctorId === req.user.id || a.doctorId === "offline_usr_doctor_default");
       } else {
         appointments = await localAppointment.find({ userId: req.user.id }).sort({ createdAt: -1 });
       }
@@ -489,6 +610,57 @@ app.get("/appointments", authenticateToken, async (req, res, next) => {
 
     res.status(200).json(appointments);
 
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Get list of doctors and their fees
+app.get("/doctors", authenticateToken, async (req, res, next) => {
+  try {
+    let doctors;
+    if (isDbConnected) {
+      doctors = await User.find({ role: "doctor" }, "_id name consultationFee");
+    } else {
+      doctors = await localUser.find({ role: "doctor" });
+      doctors = doctors.map(d => ({ _id: d._id, name: d.name, consultationFee: d.consultationFee || 500 }));
+    }
+    res.status(200).json(doctors);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Update doctor's consultation fee
+app.put("/doctor/fee", authenticateToken, requireRole(["doctor"]), async (req, res, next) => {
+  try {
+    const { consultationFee } = req.body;
+    const fee = parseInt(consultationFee, 10);
+
+    if (isNaN(fee) || fee <= 0) {
+      return res.status(400).json({ success: false, error: "Consultation fee must be a valid positive number" });
+    }
+
+    if (isDbConnected) {
+      const doctor = await User.findByIdAndUpdate(
+        req.user.id,
+        { consultationFee: fee },
+        { new: true }
+      );
+      if (!doctor) {
+        return res.status(404).json({ success: false, error: "Doctor not found" });
+      }
+      res.status(200).json({ success: true, message: "Consultation fee updated successfully", consultationFee: doctor.consultationFee });
+    } else {
+      const db = readDb();
+      const doctor = db.users.find(u => u._id === req.user.id);
+      if (!doctor) {
+        return res.status(404).json({ success: false, error: "Doctor not found" });
+      }
+      doctor.consultationFee = fee;
+      writeDb(db);
+      res.status(200).json({ success: true, message: "Consultation fee updated successfully (offline mode)", consultationFee: fee });
+    }
   } catch (error) {
     next(error);
   }

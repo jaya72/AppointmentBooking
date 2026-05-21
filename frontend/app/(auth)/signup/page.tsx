@@ -35,7 +35,7 @@ function ValidationIcon({ ok, touched }: { ok: boolean; touched: boolean }) {
 export default function SignupPage() {
   const router = useRouter()
   const name = useField()
-  const email = useField()
+  const phone = useField()
   const password = useField()
   const [role, setRole] = useState<Role>('patient')
   const [showPw, setShowPw] = useState(false)
@@ -43,20 +43,20 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false)
 
   const nameOk = name.value.trim().length >= 2
-  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)
+  const phoneOk = /^[0-9]{10}$/.test(phone.value)
   const pwOk = password.value.length >= 6
 
-  const canSubmit = nameOk && emailOk && pwOk && !loading
+  const canSubmit = nameOk && phoneOk && pwOk && !loading
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    name.touch(); email.touch(); password.touch()
+    name.touch(); phone.touch(); password.touch()
     if (!canSubmit) return
     setLoading(true)
     setServerError('')
     try {
-      console.log('[v0] Attempting signup with:', { name: name.value.trim(), email: email.value.trim(), role })
-      await api.post('/signup', { name: name.value.trim(), email: email.value.trim(), password: password.value, role })
+      console.log('[v0] Attempting signup with:', { name: name.value.trim(), phone: phone.value.trim(), role })
+      await api.post('/signup', { name: name.value.trim(), phone: phone.value.trim(), password: password.value, role })
       console.log('[v0] Signup successful')
       router.push('/login?registered=1')
     } catch (err: unknown) {
@@ -121,23 +121,24 @@ export default function SignupPage() {
               {name.touched && !nameOk && <p className="text-xs text-destructive ml-1">Name must be at least 2 characters.</p>}
             </div>
 
-            {/* Email */}
+            {/* Phone */}
             <div className="space-y-1.5">
-              <Label htmlFor="email" className="font-medium text-foreground ml-1">Email Address</Label>
+              <Label htmlFor="phone" className="font-medium text-foreground ml-1">Phone Number</Label>
               <div className="relative flex items-center">
                 <Input
-                  id="email"
-                  type="email"
-                  autoComplete="email"
-                  placeholder="you@example.com"
-                  value={email.value}
-                  onChange={e => email.set(e.target.value)}
-                  onBlur={email.touch}
-                  className={`pr-9 clay-input ${email.touched && !emailOk ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+                  id="phone"
+                  type="tel"
+                  autoComplete="tel"
+                  placeholder="9876543210"
+                  value={phone.value}
+                  onChange={e => phone.set(e.target.value.replace(/[^0-9]/g, ''))}
+                  onBlur={phone.touch}
+                  maxLength={10}
+                  className={`pr-9 clay-input ${phone.touched && !phoneOk ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                 />
-                <span className="absolute right-3"><ValidationIcon ok={emailOk} touched={email.touched} /></span>
+                <span className="absolute right-3"><ValidationIcon ok={phoneOk} touched={phone.touched} /></span>
               </div>
-              {email.touched && !emailOk && <p className="text-xs text-destructive ml-1">Please enter a valid email.</p>}
+              {phone.touched && !phoneOk && <p className="text-xs text-destructive ml-1">Please enter a valid 10-digit phone number.</p>}
             </div>
 
             {/* Password */}

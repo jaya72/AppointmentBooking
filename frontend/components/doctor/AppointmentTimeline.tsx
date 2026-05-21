@@ -88,9 +88,16 @@ export default function AppointmentTimeline({ appointments, onSelect }: Props) {
                             <User className="w-4 h-4 text-emerald-600 animate-pulse" />
                           </div>
                           <div className="min-w-0">
-                            <p className="font-bold text-foreground text-sm tracking-tight truncate">{appt.name}</p>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="font-bold text-foreground text-sm tracking-tight truncate">{appt.name}</p>
+                              {appt.isEmergency && (
+                                <span className="bg-destructive/10 text-destructive border border-destructive/20 text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full animate-pulse flex items-center gap-1 shadow-[0_0_8px_rgba(239,68,68,0.2)]">
+                                  🚨 EMERGENCY
+                                </span>
+                              )}
+                            </div>
                             <p className="text-xs font-semibold text-muted-foreground mt-0.5">
-                              {appt.time} &middot; Age {appt.age}
+                              {appt.time} &middot; Age {appt.age} &middot; <span className="font-bold text-primary">Paid: ₹{appt.amount || 500}</span>
                             </p>
                           </div>
                         </div>
