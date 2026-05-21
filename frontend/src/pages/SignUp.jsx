@@ -1,7 +1,10 @@
 import { useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 function Signup() {
+
+  const navigate = useNavigate();
 
   const [formData, setFormData] =
     useState({
@@ -27,6 +30,7 @@ function Signup() {
       );
 
       alert(response.data.message);
+      navigate("/login");
 
     } catch (error) {
       console.log(error);

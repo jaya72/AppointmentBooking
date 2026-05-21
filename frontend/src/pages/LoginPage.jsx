@@ -41,7 +41,7 @@ const navigate = useNavigate();
         "userId",
         response.data.userId
       );
-      navigate("/");
+      navigate("/dashboard");
 
     } catch (error) {
       console.log(error);
