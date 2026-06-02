@@ -1,6 +1,10 @@
-# 🏥 MediBook: Premium Neumorphic Doctor Appointment Booking Portal
+# 🏥 Doctor Appointment Booking App
 
-MediBook is a premium, secure, and production-grade web application engineered for booking medical consultations. Built on the **MERN stack**, the platform is completely customized with a high-end tactile skeuomorphic design interface matching the **Product UI Styleguide (Claymorphic / Neumorphic Theme)**.
+AI-enabled realtime telemedicine and emergency consultation platform.: Premium Neumorphic Doctor Appointment Booking Portal
+
+MediBook# Doctor Appointment Booking App
+
+AI-enabled realtime telemedicine and emergency consultation platform. is a premium, secure, and production-grade web application engineered for booking medical consultations. Built on the **MERN stack**, the platform is completely customized with a high-end tactile skeuomorphic design interface matching the **Product UI Styleguide (Claymorphic / Neumorphic Theme)**.
 
 ---
 
@@ -19,7 +23,7 @@ The application utilizes dynamic visual depth states, giving elements a premium 
 
 ## 🛡️ Robust Security & Middleware Architecture
 
-MediBook is hardened against common security threats:
+Doctor Booking Appointment is hardened against common security threats:
 *   **JWT Bearer Verification:** Access to protected patient and doctor dashboard data is guarded by JSON Web Token verification middleware.
 *   **Role-Based Access Control (RBAC):** Strict checks enforce route segregation between `PATIENT` and `DOCTOR` profiles.
 *   **Input Sanitization & Schema Validation:** Validation checks enforce strict typing on the backend for email validation, age ranges, address lengths, and parameters.

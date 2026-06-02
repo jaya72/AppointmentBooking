@@ -6,8 +6,8 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-mono' })
 
 export const metadata: Metadata = {
-  title: 'MediBook — Doctor Appointment Booking',
-  description: 'Book and manage doctor appointments seamlessly.',
+  title: 'Doctor Appointment Booking App',
+  description: 'Book and manage doctor appointments seamlessly - AI-enabled telemedicine platform',
 }
 
 export default function RootLayout({

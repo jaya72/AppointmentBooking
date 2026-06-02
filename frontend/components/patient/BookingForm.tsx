@@ -140,7 +140,7 @@ export default function BookingForm({ onBooked }: Props) {
         key: orderData.keyId,
         amount: orderData.amount,
         currency: 'INR',
-        name: 'MediBook Appointment',
+        name: 'Doctor Appointment Booking',
         description: `Booking with ${selectedDoctor?.name || 'Doctor'}`,
         order_id: orderData.orderId,
         handler: async function (response: any) {

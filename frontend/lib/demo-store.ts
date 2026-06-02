@@ -55,7 +55,7 @@ appointments.push({
   date: today,
   time: '10:00 AM',
   paymentStatus: 'PAID',
-  meetingLink: 'https://meet.jit.si/medibook-demo-001',
+  meetingLink: 'https://meet.jit.si/doctor-appointment-demo-001',
   createdAt: new Date().toISOString()
 })
 

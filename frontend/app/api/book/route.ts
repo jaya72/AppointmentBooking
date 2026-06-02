@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
       date,
       time,
       paymentStatus: 'PAID' as const,
-      meetingLink: `https://meet.jit.si/medibook-${Date.now()}`,
+      meetingLink: `https://meet.jit.si/doctor-appointment-${Date.now()}`,
       createdAt: new Date().toISOString()
     }
 

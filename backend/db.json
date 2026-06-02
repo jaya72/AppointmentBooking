@@ -3,16 +3,31 @@
     {
       "_id": "offline_usr_patient_default",
       "name": "Default Patient",
-      "email": "patient@example.com",
       "password": "$2b$10$9p5/G/eE723ToZgQhcAW..iBI6VcoG6XdGMAIot1YJnXmjNnU5d2m",
-      "role": "patient"
+      "role": "patient",
+      "phone": "9876543210"
     },
     {
       "_id": "offline_usr_doctor_default",
-      "name": "Dr. Smith",
-      "email": "doctor@example.com",
+      "name": "Dr. Sangita Mishra",
       "password": "$2b$10$7f8BIj93TBPBQ1ZGR0dJO.1fjcsu66/IYZuRIOonw9/c6U5hEq7VG",
-      "role": "doctor"
+      "role": "doctor",
+      "phone": "9999999999",
+      "consultationFee": 500
+    },
+    {
+      "_id": "offline_usr_1779844452407_884",
+      "name": "jaya test1",
+      "phone": "1232232434",
+      "password": "$2b$10$19131QHzm5.XbuWYSDKUsu5Jigg09Dh4H25RXUU.IIwoc8yQKM1eG",
+      "role": "patient"
+    },
+    {
+      "_id": "offline_usr_1779844621990_847",
+      "name": "jayatest1",
+      "phone": "1234567892",
+      "password": "$2b$10$Eaov/oznp0NIiJrbsoxZq.xKRun13zT1xBc2bcP0jXUk8vjDapSji",
+      "role": "patient"
     }
   ],
   "appointments": [

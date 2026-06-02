@@ -76,12 +76,12 @@ export default function SignupPage() {
           <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
             <Stethoscope className="w-5 h-5 text-primary-foreground" />
           </div>
-          <span className="text-xl font-semibold text-foreground tracking-tight">MediBook</span>
+          <span className="text-xl font-semibold text-foreground tracking-tight">Doctor Appointment Booking App</span>
         </div>
 
         <div className="clay-card p-8">
           <h1 className="text-2xl font-semibold text-foreground mb-1 text-balance">Create your account</h1>
-          <p className="text-sm text-muted-foreground mb-6">Join MediBook to manage your health appointments.</p>
+          <p className="text-sm text-muted-foreground mb-6">Join Doctor Appointment Booking App to manage your health appointments.</p>
 
           {/* Role selector tab container (Tactile clay track) */}
           <div className="clay-tabs-container flex mb-6">
@@ -110,7 +110,7 @@ export default function SignupPage() {
                   id="name"
                   type="text"
                   autoComplete="name"
-                  placeholder="Dr. Shiv Kumar"
+                  placeholder="Enter your full name"
                   value={name.value}
                   onChange={e => name.set(e.target.value)}
                   onBlur={name.touch}
@@ -129,7 +129,7 @@ export default function SignupPage() {
                   id="phone"
                   type="tel"
                   autoComplete="tel"
-                  placeholder="9876543210"
+                  placeholder=" "
                   value={phone.value}
                   onChange={e => phone.set(e.target.value.replace(/[^0-9]/g, ''))}
                   onBlur={phone.touch}
@@ -149,7 +149,7 @@ export default function SignupPage() {
                   id="password"
                   type={showPw ? 'text' : 'password'}
                   autoComplete="new-password"
-                  placeholder="Min. 6 characters"
+                  placeholder=" "
                   value={password.value}
                   onChange={e => password.set(e.target.value)}
                   onBlur={password.touch}

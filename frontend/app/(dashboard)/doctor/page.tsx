@@ -102,7 +102,7 @@ export default function DoctorPage() {
             <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shadow-[inset_1.5px_1.5px_3px_rgba(255,255,255,0.5),2px_2px_5px_rgba(163,177,198,0.3)]">
               <Stethoscope className="w-4 h-4 text-primary-foreground" />
             </div>
-            <span className="font-bold text-foreground tracking-tight">MediBook</span>
+            <span className="font-bold text-foreground tracking-tight">Doctor Appointment Booking App</span>
             <DoctorBadge />
           </div>
           <div className="flex items-center gap-3">

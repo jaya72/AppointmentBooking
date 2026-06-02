@@ -159,7 +159,10 @@ async function seedMongoDb() {
   }
 }
 
-mongoose.connect(config.MONGO_URI)
+mongoose.connect(config.MONGO_URI, {
+  tls: true,
+  tlsAllowInvalidCertificates: true,
+})
   .then(() => {
     console.log("MongoDB Connected Successfully");
     isDbConnected = true;
@@ -169,6 +172,7 @@ mongoose.connect(config.MONGO_URI)
     console.error("MongoDB Connection Failure:", err.message);
     console.warn("WARNING: Backend is running in OFFLINE-RESILIENT mode using local db.json.");
     isDbConnected = false;
+    
     // Trigger seed creation
     readDb();
   });
