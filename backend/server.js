@@ -36,9 +36,10 @@ if (config.RAZORPAY_KEY_ID && config.RAZORPAY_KEY_ID !== "rzp_test_YOUR_KEY_ID")
 // Security and Logging Middleware
 app.use(logger);
 app.use(cors({
-  origin: ["http://localhost:3000", "http://localhost:3001", "http://localhost:5173"],
+  origin: ["http://localhost:3000", "http://localhost:3001", "http://localhost:5173", "https://appointment-booking-q5o54helg-jaya-m-project.vercel.app"],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true
 }));
 app.use(express.json());
 
@@ -146,7 +147,7 @@ async function seedMongoDb() {
     const doctorExists = await User.findOne({ phone: "9999999999" });
     if (!doctorExists) {
       await User.create({
-        name: "Dr. Smith",
+        name: "Default Doctor",
         phone: "9999999999",
         password: doctorHash,
         role: "doctor",
